@@ -52,7 +52,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form:form id="refModal" action="" method="post">
+            <form:form id="refModal" action="${pageContext.request.contextPath}/user/edit" method="post">
                 <div class="modal-body">
                     <table class="table text-secondary">
                         <tr><td>Имя:</td><td><input name="name" class="form-control" id="form_name"/></td>
@@ -92,7 +92,7 @@
 
         <div class="row">
             <div class="col" style="">
-                <form:form id="refDelete" action="${pageContext.request.contextPath}/task/adduser" method="get">
+                <form:form id="refDelete" action="${pageContext.request.contextPath}/user/edit" method="post">
                     <button type="submit" class="btn btn-primary">Создать</button>
                     <input type="hidden" name="user_id" value="${user_id}"/>
                     <input type="hidden" name="page" value="${page}"/>
@@ -117,7 +117,7 @@
                                 </thead>
                                 <tbody>
                                 <c:forEach var="user" items="${userList}">
-                                    <tr onclick="displayModal('${pageContext.request.contextPath}/user/save',${user.id},'${user.email}', '${user.name}' , '${user.surname}', '${user.userName}', '${user.password}', ${user.active}, ${user.admin}, ${user.list});"
+                                    <tr onclick="displayModal('${pageContext.request.contextPath}/user/edit',${user.id},'${user.email}', '${user.name}' , '${user.surname}', '${user.userName}', '${user.password}', ${user.active}, ${user.admin}, ${user.list});"
                                         data-toggle="modal" data-target="#exampleModal"
                                         data-myvalue="troudbal" data-bb="troudbal">
                                         <td>${user.id}</td>

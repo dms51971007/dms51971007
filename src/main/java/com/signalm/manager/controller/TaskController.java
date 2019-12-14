@@ -85,7 +85,7 @@ public class TaskController {
         taskService.deleteTask(task_id, getAuthUser(request).getId());
         prepareModelTaskList(user_id, page, theModel, request);
 
-        return "tasklist";
+        return "redirect:tasklist";
 
     }
 
@@ -99,7 +99,7 @@ public class TaskController {
         taskService.finishTask(task_id, getAuthUser(request).getId());
         prepareModelTaskList(user_id, page, theModel, request);
 
-        return "tasklist";
+        return "redirect:tasklist";
 
     }
 

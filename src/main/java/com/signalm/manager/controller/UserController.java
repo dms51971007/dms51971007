@@ -32,7 +32,9 @@ public class UserController {
         return "userlist";
     }
 
-    @PostMapping("/save")
+
+
+    @PostMapping("/edit")
     public String saveUser(@RequestParam("id") int id,
                            @RequestParam("email") String email,
                            @RequestParam("name") String name,

@@ -19,7 +19,7 @@ public class RoleDaoImpl implements RoleDAO {
 
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		Query<Role> theQuery = currentSession.createQuery("from Role where name=:roleName", Role.class);
+		Query<Role> theQuery = currentSession.createQuery("Select r from Role r where r.name=:roleName", Role.class);
 		theQuery.setParameter("roleName", theRoleName);
 		
 		Role theRole = null;
