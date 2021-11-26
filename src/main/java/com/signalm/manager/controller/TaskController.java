@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 public class TaskController {
     private final UserService userService;
 
-    private MapperManager mapperManager = new MapperManager();
+    private final MapperManager mapperManager = new MapperManager();
 
     private final TaskService taskService;
 

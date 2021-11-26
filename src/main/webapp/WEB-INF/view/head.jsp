@@ -10,6 +10,9 @@
             <a class="navbar-brand" href="#">Manager.Signal-M Пользователь: ${auth_user.fullName}</a>
             <ul class="nav justify-content-end">
                 <li class="nav-item">
+                    <a class="nav-link active" href="${pageContext.request.contextPath}/project/?user_id=-1&page=1">Проекты</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link active" href="${pageContext.request.contextPath}/task/tasklist?user_id=-1&page=1">Задачи</a>
                 </li>
                 <li class="nav-item">

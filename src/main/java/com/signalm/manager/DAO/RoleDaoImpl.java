@@ -4,15 +4,16 @@ import com.signalm.manager.model.Role;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class RoleDaoImpl implements RoleDAO {
 
-	// need to inject the session factory
-	@Autowired
-	private SessionFactory sessionFactory;
+	private final SessionFactory sessionFactory;
+
+	public RoleDaoImpl(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 
 	@Override
 	public Role findRoleByName(String theRoleName) {
@@ -24,12 +25,8 @@ public class RoleDaoImpl implements RoleDAO {
 		
 		Role theRole = null;
 		
-		try {
-			theRole = theQuery.getSingleResult();
-		} catch (Exception e) {
-			theRole = null;
-		}
-		
+		theRole = theQuery.getSingleResult();
+
 		return theRole;
 	}
 }

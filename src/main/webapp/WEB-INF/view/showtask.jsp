@@ -9,22 +9,8 @@
     <title></title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <%--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"--%>
-    <%--type="text/css">--%>
-    <%--<link rel="stylesheet" href="https://static.pingendo.com/bootstrap/bootstrap-4.2.1.css">--%>
     <jsp:include page="libs.jsp"/>
 
-    <%--<script--%>
-    <%--src="http://code.jquery.com/jquery-3.3.1.slim.min.js"--%>
-    <%--integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="--%>
-    <%--crossorigin="anonymous"></script>--%>
-
-    <%--<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"--%>
-    <%--integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"--%>
-    <%--crossorigin="anonymous"></script>--%>
-    <%--<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"--%>
-    <%--integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"--%>
-    <%--crossorigin="anonymous"></script>--%>
 
     <script type="text/javascript">
         function displayModal(ref, user_id, task_id, page, memo_id) {
@@ -110,6 +96,16 @@
                             <%--</button>--%>
 
                         </td>
+                    <tr>
+                        <td><b>ID</b></td>
+                    <td><b>${task_to.id}</b></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    </tr>
 
                     <tr>
                         <td> Дата создания:</td>
@@ -120,6 +116,7 @@
                         <td><b>${f:formatLocalDateTime(task_to.dateEnd, 'dd.MM.yyyy HH:mm:ss')}</b></td>
                         <td> Дата завершения:</td>
                         <td><b>${f:formatLocalDateTime(task_to.dateComplete, 'dd.MM.yyyy HH:mm:ss')}</b></td>
+
                     </tr>
 
                     <tr>

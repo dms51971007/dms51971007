@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @TestPropertySource(locations = "/persistence-mysql_test.properties")
-@ContextConfiguration(classes = {DemoSecurityConfig.class, DemoAppConfig.class})
+@ContextConfiguration(classes = {DemoSecurityConfig.class, SignalManagerConfig.class})
 @WebAppConfiguration
 
 public class DemoAppConfigTest extends TestCase {
@@ -78,7 +78,7 @@ public class DemoAppConfigTest extends TestCase {
         mockMvc.perform(get("/user/list").with(SecurityMockMvcRequestPostProcessors.authentication(new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword()))))
                 .andExpect(status().is2xxSuccessful());
 
-        user = userService.getUser(107);
+        user = userService.getUser(94);
         mockMvc.perform(get("/user/list").with(SecurityMockMvcRequestPostProcessors.authentication(new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword()))))
                 .andExpect(status().is4xxClientError());
 

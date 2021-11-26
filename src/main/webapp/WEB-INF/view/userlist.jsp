@@ -92,12 +92,19 @@
 
         <div class="row">
             <div class="col" style="">
-                <form:form id="refDelete" action="${pageContext.request.contextPath}/user/edit" method="post">
-                    <button type="submit" class="btn btn-primary">Создать</button>
-                    <input type="hidden" name="user_id" value="${user_id}"/>
-                    <input type="hidden" name="page" value="${page}"/>
+<%--                <form:form id="refEdit">--%>
+                    <button
+                            class="btn btn-primary"
+<%--                            onclick="alert('Клик!')"--%>
+                            onclick="displayModal('${pageContext.request.contextPath}/user/edit',0,'','' ,'' ,'' ,'' ,false ,false ,false )"
+                            data-toggle="modal" data-target="#exampleModal"
+                            data-myvalue="troudbal" data-bb="troudbal"
+                    >Создать
 
-                </form:form>
+                    </button>
+
+
+<%--                </form:form>--%>
 
                 <div class="row">
                     <div class="col">

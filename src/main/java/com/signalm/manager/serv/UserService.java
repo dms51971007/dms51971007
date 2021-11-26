@@ -13,5 +13,4 @@ public interface UserService extends UserDetailsService {
     List<User> getUsersWithCountTask();
 //    void save(CrmUser crmUser);
     void save(User user);
-
     }

@@ -66,6 +66,7 @@
 
                             <table class="table table-sm table-hover">
                                 <thead>
+                                <th class="w-12">#</th>
                                 <th class="w-18">Дата</th>
                                 <th class="w-55">Наименование</th>
                                 <th class="w-18">Срок</th>
@@ -76,6 +77,7 @@
 
                                 <c:forEach var="task" items="${taskList}">
                                     <tr onclick="window.location.href='${pageContext.request.contextPath}/task/showtask?task_id=${task.id}&user_id=${user_id}&page=${page}'; return false;" class=' ${task.isDone?"text-success":"text-danger"} ${task.isViewed?"":"font-weight-bold"}'>
+                                        <td>${task.id}</td>
                                         <td>${f:formatLocalDateTime(task.dateBegin, 'dd.MM.yyyy HH:mm:ss')}</td>
                                         <td>${task.title}</td>
                                         <td>${f:formatLocalDateTime(task.dateEnd, 'dd.MM.yyyy HH:mm:ss')}</td>

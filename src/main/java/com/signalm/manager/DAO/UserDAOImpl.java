@@ -22,6 +22,18 @@ public class UserDAOImpl implements UserDAO {
     @Autowired
     public UserDAOImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
+        isConnected();
+    }
+
+    public Boolean isConnected()
+    {
+//        Session session = sessionFactory.getCurrentSession();
+//
+//        Query<User> query = session.createQuery("Select 1 from User", User.class);
+//
+//         query.getResultList();
+//
+         return false;
     }
 
     @Override
@@ -59,18 +71,12 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public User findByUserName(String theUserName) {
-        // get the current hibernate session
         Session currentSession = sessionFactory.getCurrentSession();
 
-        // now retrieve/read from database using username
-        Query<User> theQuery = currentSession.createQuery("from User where userName=:uName", User.class);
+         Query<User> theQuery = currentSession.createQuery("from User where userName=:uName", User.class);
         theQuery.setParameter("uName", theUserName);
         User theUser = null;
-        try {
-            theUser = theQuery.getSingleResult();
-        } catch (Exception e) {
-            theUser = null;
-        }
+             theUser = theQuery.getSingleResult();
 
         return theUser;
     }
@@ -83,5 +89,6 @@ public class UserDAOImpl implements UserDAO {
         // create the user ... finally LOL
         currentSession.saveOrUpdate(theUser);
     }
+
 
 }

@@ -1,8 +1,6 @@
 package com.signalm.manager.model;
 
 
-import org.hibernate.annotations.Type;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +36,6 @@ public class Task {
     private User responsible;
 
     @OneToMany(targetEntity=Memo.class,fetch = FetchType.LAZY, mappedBy = "task")
-
     @ElementCollection(targetClass=Memo.class)
     @OrderBy("dateCreate ASC")
     private List<Memo> memoList;
@@ -49,6 +46,9 @@ public class Task {
     @Column(name = "isViewed")
     private boolean isViewed;
 
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "project_id")
+//    private Task project;
 
     public Task() {
     }
