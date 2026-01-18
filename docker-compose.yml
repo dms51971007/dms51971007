@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  mysql-signalm:
+    image: mysql:8.0.42
+    container_name: mysql-signalm
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: RootPassword123!
+      MYSQL_DATABASE: menagerie
+      MYSQL_USER: signalm
+      MYSQL_PASSWORD: 128201
+      MYSQL_TCP_PORT: 3306
+    ports:
+      - "3306:3306"
+    volumes:
+      - c:\tmp\mysql_data:/var/lib/mysql
+      - .\init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+    networks:
+      - signalm-network
+
+networks:
+  signalm-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    name: mysql_signalm_data

@@ -22,7 +22,4 @@ public class SecurityWebApplicationInitializer
         characterEncodingFilter.setInitParameter("forceEncoding", "true");
         characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
     }
-
-
-
 }

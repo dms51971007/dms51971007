@@ -70,7 +70,6 @@ public class SignalManagerConfig implements WebMvcConfigurer {
         Properties properties = new Properties();
         properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         properties.put("hibernate.jdbc.time_zone", "Europe/Moscow");
-//        properties.put("hibernate.hbm2ddl.halt_on_error", "true");
         properties.put(AvailableSettings.HBM2DDL_HALT_ON_ERROR, true);
         properties.put("hibernate.show_sql", true);
         return properties;
