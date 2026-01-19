@@ -195,7 +195,7 @@
 	<!-- TO DO: Add support for Maven WAR Plugin -->
 
 	<build>
-		<finalName>signalm-manager</finalName>
+		<finalName>signalm-manager-new</finalName>
 	
 		<pluginManagement>
 			<plugins>
@@ -216,7 +216,18 @@
                     <target>9</target>
                 </configuration>
             </plugin>
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<url>http://turchenkov1.fvds.ru:8080/manager/text</url>
+					<server>TomcatServer</server>
+					<path>/signalm-manager-new12</path>
+				</configuration>
+			</plugin>
         </plugins>
+
     </build>
 
 
