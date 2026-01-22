@@ -7,12 +7,8 @@ import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Repository("UserDAO")
 public class UserDAOImpl implements UserDAO {
@@ -22,45 +18,57 @@ public class UserDAOImpl implements UserDAO {
     @Autowired
     public UserDAOImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
-        isConnected();
-    }
-
-    public Boolean isConnected()
-    {
-//        Session session = sessionFactory.getCurrentSession();
-//
-//        Query<User> query = session.createQuery("Select 1 from User", User.class);
-//
-//         query.getResultList();
-//
-         return false;
     }
 
     @Override
     public List<User> getUsers() {
         Session session = sessionFactory.getCurrentSession();
-
-        Query<User> query = session.createQuery("from User", User.class);
-
+        Query<User> query = session.createQuery(
+                "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles", User.class);
         return query.getResultList();
     }
 
     @Override
     public List<User> getUsersWithCountTask() {
         Session session = sessionFactory.getCurrentSession();
+        // Get users with task counts - using subquery to avoid grouping issues with JOIN FETCH
         Query query = session.createQuery(
-                "select u as user,sum(case when t.isDone = true then 0 else 1 end) as num_task from User u LEFT OUTER JOIN Task t on t.responsible=u.id where u.islist=true group by u" );
+                "SELECT u.id, SUM(CASE WHEN t.isDone = true THEN 0 ELSE 1 END) as num_task " +
+                "FROM User u LEFT OUTER JOIN Task t ON t.responsible.id = u.id " +
+                "WHERE u.islist = true " +
+                "GROUP BY u.id");
 
-
-        List<User> result = new ArrayList<>();
-
-        for (Object[] row : (List<Object[]>)query.getResultList()) {
-            User u = (User)row[0];
-            u.setNumActiveTask((Long)row[1]);
-            result.add(u);
+        List<Object[]> results = query.getResultList();
+        if (results.isEmpty()) {
+            return new ArrayList<>();
         }
 
-       return result;
+        List<Integer> userIds = new ArrayList<>();
+        for (Object[] row : results) {
+            userIds.add((Integer) row[0]);
+        }
+
+        // Fetch users with roles in a single optimized query
+        Query<User> userQuery = session.createQuery(
+                "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id IN :ids", User.class);
+        userQuery.setParameter("ids", userIds);
+        List<User> users = userQuery.getResultList();
+
+        // Create a map for quick lookup
+        java.util.Map<Integer, Long> taskCountMap = new java.util.HashMap<>();
+        for (Object[] row : results) {
+            taskCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
+        }
+
+        // Set task counts on users
+        for (User user : users) {
+            Long count = taskCountMap.get(user.getId());
+            if (count != null) {
+                user.setNumActiveTask(count);
+            }
+        }
+
+        return users;
     }
 
     @Override
@@ -72,13 +80,11 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public User findByUserName(String theUserName) {
         Session currentSession = sessionFactory.getCurrentSession();
-
-         Query<User> theQuery = currentSession.createQuery("from User where userName=:uName", User.class);
+        Query<User> theQuery = currentSession.createQuery(
+                "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.userName = :uName", User.class);
         theQuery.setParameter("uName", theUserName);
-        User theUser = null;
-             theUser = theQuery.getSingleResult();
-
-        return theUser;
+        List<User> results = theQuery.getResultList();
+        return results.isEmpty() ? null : results.get(0);
     }
 
     @Override

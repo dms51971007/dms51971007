@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Редактирование задачи</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:replace="fragments/libs :: libs"></th:block>
+
+    <script type="text/javascript">
+        // Date inputs use native picker
+    </script>
+</head>
+
+<body>
+<div class="py-1">
+    <div class="container-fluid">
+        <th:block th:replace="fragments/head :: head(${auth_user})"></th:block>
+
+        <div class="row">
+            <th:block th:replace="fragments/menu :: menu(${userList}, ${user_id})"></th:block>
+            <div class="col">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h4 class="mb-0">
+                            <i class="fas fa-edit mr-2 text-primary"></i>
+                            <span th:text="${task_to.id != null} ? 'Редактирование задачи' : 'Создание задачи'">Редактирование задачи</span>
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form th:action="@{/task/savetask}" th:object="${task_to}" method="post">
+                            <input type="hidden" th:field="*{id}">
+                            <input type="hidden" th:field="*{isViewed}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" th:value="${user_id}" name="user_id"/>
+                            <input type="hidden" th:value="${page}" name="page"/>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label for="title"><i class="fas fa-heading mr-1"></i>Название задачи</label>
+                                        <input type="text" th:field="*{title}" class="form-control" id="title" required/>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-check-circle mr-1"></i>Статус</label>
+                                        <div class="form-check">
+                                            <input type="checkbox" th:field="*{isDone}" class="form-check-input" id="isDone"/>
+                                            <label class="form-check-label" for="isDone">Задача выполнена</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="memo"><i class="fas fa-align-left mr-1"></i>Описание</label>
+                                <textarea th:field="*{memo}" class="form-control" id="memo" rows="4"></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="dateBeginInput"><i class="fas fa-calendar-plus mr-1"></i>Дата начала</label>
+                                        <input type="date" class="form-control" id="dateBeginInput" name="date_begin"
+                                               th:value="${task_to.dateBegin != null ? #temporals.format(task_to.dateBegin, 'yyyy-MM-dd') : ''}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="dateEndInput"><i class="fas fa-clock mr-1"></i>Срок выполнения</label>
+                                        <input type="date" class="form-control" id="dateEndInput" name="date_end"
+                                               th:value="${task_to.dateEnd != null ? #temporals.format(task_to.dateEnd, 'yyyy-MM-dd') : ''}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="createdBy_id" th:value="${task_to.id != null and task_to.id != 0 ? (task_to.createdBy != null ? task_to.createdBy.id : '') : auth_user.id}"/>
+                            <input type="hidden" name="responsible_id" th:value="${task_to.responsible != null ? task_to.responsible.id : user_id}"/>
+
+                            <div class="row" th:if="${task_to.id != null and task_to.id != 0}">
+                                <div class="col-md-6">
+                                    <div class="form-group mt-5">
+                                        <label for="createdBy"><i class="fas fa-user-plus mr-1"></i>Заказчик</label>
+                                        <input type="text" class="form-control" id="createdBy" th:value="${task_to.createdBy != null ? task_to.createdBy.fullName : ''}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mt-5">
+                                        <label for="responsible"><i class="fas fa-user-cog mr-1"></i>Исполнитель</label>
+                                        <input type="text" class="form-control" id="responsible" th:value="${task_to.responsible != null ? task_to.responsible.fullName : ''}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a th:href="@{/task/showtask(user_id=${user_id},page=${page},task_id=${task_to.id})}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left mr-1"></i>Отмена
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save mr-1"></i>
+                                    <span th:text="${task_to.id != null} ? 'Сохранить изменения' : 'Создать задачу'">Сохранить</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

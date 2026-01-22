@@ -4,7 +4,6 @@ import com.allanditzel.springframework.security.web.csrf.CsrfTokenResponseHeader
 import com.signalm.manager.serv.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,29 +32,25 @@ public class DemoSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(HttpSecurity http) {
-
-
-        try {
-            http.authorizeRequests()
-                  .antMatchers("/").hasRole("USER")
-                  .antMatchers("/task/**").hasRole("USER")
-                  .antMatchers("/user/**").hasRole("ADMIN")
-                  .and()
-                  .formLogin().loginPage("/showMyLoginPage")
-                  .loginProcessingUrl("/authenticateTheUser")
-                  .successHandler(customAuthenticationSuccessHandler)
-                  .permitAll()
-                  .and()
-                  .logout().permitAll()
-                  .and()
-                  .exceptionHandling().accessDeniedPage("/access-denied");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+              .antMatchers("/").hasRole("USER")
+              .antMatchers("/task/**").hasRole("USER")
+              .antMatchers("/user/**").hasRole("ADMIN")
+              .and()
+              .formLogin().loginPage("/showMyLoginPage")
+              .loginProcessingUrl("/authenticateTheUser")
+              .successHandler(customAuthenticationSuccessHandler)
+              .permitAll()
+              .and()
+              .logout().permitAll()
+              .and()
+              .exceptionHandling().accessDeniedPage("/access-denied")
+              .and()
+              .csrf()
+              .ignoringAntMatchers("/task/savememo"); // Disable CSRF for file upload
 
         http.addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class);
-
     }
     @Bean
     public PasswordEncoder passwordEncoder() {

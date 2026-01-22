@@ -6,3 +6,12 @@ http://turchenkov1.fvds.ru:8080/manager/html
 
 деплой
 curl -u admin:liek2dec3i -X PUT \ --data-binary @signalm-manager-new.war \ "http://turchenkov1.fvds.ru:8080/manager/text/deploy?path=/signalm-manager-new&update=true"
+
+
+docker-compose exec -T mysql-signalm mysql -u root -pRootPassword123! menagerie < mydump.sql
+
+ALTER USER 'signalm'@'localhost' IDENTIFIED BY '128201';
+
+ALTER USER 'signalm'@'%' IDENTIFIED BY '128201';
+
+FLUSH PRIVILEGES;

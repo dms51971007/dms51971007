@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.StyledEditorKit;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,14 +23,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public List<Task> getTasks(int id, Integer filterID, int page) {
-        return taskDAO.getTasks(id, filterID, page);
+    public List<Task> getTasks(int id, Integer filterID, String search, LocalDateTime dateFrom, LocalDateTime dateTo, int page) {
+        return taskDAO.getTasks(id, filterID, search, dateFrom, dateTo, page);
     }
 
     @Override
     @Transactional
-    public List<Task> getMyTasks(int id, Integer filterID, int page) {
-        return taskDAO.getMyTasks(id, filterID, page);
+    public List<Task> getMyTasks(int id, Integer filterID, String search, LocalDateTime dateFrom, LocalDateTime dateTo, int page) {
+        return taskDAO.getMyTasks(id, filterID, search, dateFrom, dateTo, page);
     }
 
 
@@ -46,7 +45,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     public Task getTaskWithMemo(int id) {
         Task tmp = taskDAO.getTask(id);
-        tmp.getMemoList().iterator();
+        initializeMemoList(tmp);
         return tmp;
     }
 
@@ -87,6 +86,13 @@ public class TaskServiceImpl implements TaskService {
             task.setIsViewed(viewed);
             taskDAO.addTask(task);
         }
+    }
+
+    private void initializeMemoList(Task task) {
+        if (task == null || task.getMemoList() == null) {
+            return;
+        }
+        task.getMemoList().size();
     }
 }
 

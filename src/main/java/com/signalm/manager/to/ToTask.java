@@ -22,7 +22,7 @@ public class ToTask {
     private ToUser createdBy;
     private ToUser responsible;
     private Boolean isDone;
-    private Boolean isViewed;
+    private boolean isViewed;
 
     public ToTask() {
     }
@@ -103,7 +103,7 @@ public class ToTask {
         return isViewed;
     }
 
-    public void setIsViewed(boolean viewed) {
-        isViewed = viewed;
+    public void setIsViewed(boolean isViewed) {
+        this.isViewed = isViewed;
     }
 }

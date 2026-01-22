@@ -3,6 +3,7 @@ package com.signalm.manager.controller;
 import com.signalm.manager.model.User;
 import com.signalm.manager.serv.UserService;
 import com.signalm.manager.to.ToUser;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +22,23 @@ public class UserController {
         this.userService = userService;
     }
 
+    @ModelAttribute("_csrf")
+    public CsrfToken getCsrfToken(HttpServletRequest request) {
+        return (CsrfToken) request.getAttribute("_csrf");
+    }
+
     @GetMapping("/list")
-    public String userList(Model theModel) {
+    public String userList(Model theModel, HttpServletRequest request) {
 
         List<ToUser> userList = userService.getUsers().stream().map(post -> new ToUser(post)).collect(Collectors.toList());
 
         theModel.addAttribute("userList", userList);
 
+        // Add authenticated user for header
+        User authUser = (User) request.getSession().getAttribute("user");
+        if (authUser != null) {
+            theModel.addAttribute("auth_user", new ToUser(authUser));
+        }
 
         return "userlist";
     }
@@ -60,8 +71,12 @@ public class UserController {
         userService.save(u.getUser());
         List<ToUser> userList = userService.getUsers().stream().map(post -> new ToUser(post)).collect(Collectors.toList());
         theModel.addAttribute("userList", userList);
-        ToUser authUser = new ToUser((User) request.getSession().getAttribute("user"));
-        theModel.addAttribute("auth_user", authUser);
+
+        // Add authenticated user for header
+        User authUser = (User) request.getSession().getAttribute("user");
+        if (authUser != null) {
+            theModel.addAttribute("auth_user", new ToUser(authUser));
+        }
 
         return "userlist";
     }

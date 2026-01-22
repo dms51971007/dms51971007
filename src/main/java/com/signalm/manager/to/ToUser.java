@@ -50,9 +50,15 @@ public class ToUser {
         this.numActiveTask = user.getNumActiveTask();
         this.password = user.getPassword();
         this.isList = user.isIslist();
-        for (Role r : user.getRoles()) {
-            if (r.getName().equals("ROLE_ADMIN")) isAdmin = true;
-            if (r.getName().equals("ROLE_USER")) isActive = true;
+        if (user.getRoles() != null) {
+            for (Role r : user.getRoles()) {
+                if ("ROLE_ADMIN".equals(r.getName())) {
+                    isAdmin = true;
+                }
+                if ("ROLE_USER".equals(r.getName())) {
+                    isActive = true;
+                }
+            }
         }
     }
 
@@ -60,7 +66,6 @@ public class ToUser {
         User u = new User();
         u.setId(this.id);
         u.setName(this.name);
-        u.setUserName(this.userName);
         u.setSurname(this.getSurname());
         u.setUserName(this.getUserName());
         u.setEmail(this.getEmail());

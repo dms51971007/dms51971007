@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="head(authUser)">
+    <div class="row mb-4">
+        <div class="col">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
+                <a class="navbar-brand font-weight-bold text-primary" href="#">
+                    <img th:src="@{/resource/img/logo.png}" alt="Logo" style="height: 32px; width: auto;">
+                </a>
+
+                <div class="navbar-text text-muted mr-3 d-none d-md-block">
+                    <i class="fas fa-user-circle mr-1"></i>
+                    <span th:text="${authUser.fullName}">Пользователь</span>
+                </div>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link px-3" th:href="@{/project/(user_id=-1,page=1)}">
+                                <i class="fas fa-building mr-1"></i> Цеха
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" th:href="@{/task/tasklist(user_id=-1,page=1)}">
+                                <i class="fas fa-tasks mr-1"></i> Задачи
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" th:href="@{/user/list}">
+                                <i class="fas fa-users mr-1"></i> Пользователи
+                            </a>
+                        </li>
+                        <li class="nav-item ml-3">
+                            <form th:action="@{/logout}" method="post" class="form-inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm px-3">
+                                    <i class="fas fa-sign-out-alt mr-1"></i> Выход
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+</div>
+</body>
+</html>

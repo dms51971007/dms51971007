@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:fragment="libs">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" th:href="@{/resource/css/bootstrap-4.2.1.css}">
+        <link rel="stylesheet" th:href="@{/resource/css/tempusdominus-bootstrap-4.min.css}">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script th:src="@{/resource/js/http_cdnjs.cloudflare.com_ajax_libs_moment.js_2.22.2_moment.js}"></script>
+        <script th:src="@{/resource/js/http_cdnjs.cloudflare.com_ajax_libs_moment.js_2.24.0_locale_ru.js}"></script>
+        <script th:src="@{/resource/js/http_cdnjs.cloudflare.com_ajax_libs_popper.js_1.14.7_umd_popper.js}"></script>
+        <script th:src="@{/resource/js/http_stackpath.bootstrapcdn.com_bootstrap_4.2.1_js_bootstrap.js}"></script>
+        <script th:src="@{/resource/js/http_cdnjs.cloudflare.com_ajax_libs_tempusdominus-bootstrap-4_5.0.1_js_tempusdominus-bootstrap-4.js}"></script>
+
+        <style>
+            /* Light & strict palette: base #f7f9fc, text #1f2230, accent #fc042b, contrast #100041 */
+            body {
+                background: #f7f9fc;
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                color: #1f2230;
+            }
+
+            .container-fluid {
+                background: #ffffff;
+                border-radius: 12px;
+                box-shadow: 0 12px 30px rgba(31, 34, 48, 0.08);
+                margin: 20px auto;
+                padding: 24px 24px 32px 24px;
+                min-height: calc(100vh - 40px);
+                border: 1px solid #e5e7eb;
+            }
+
+            .navbar {
+                background: #ffffff !important;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                box-shadow: 0 6px 16px rgba(31, 34, 48, 0.08);
+                margin-bottom: 24px;
+            }
+
+            .navbar-brand {
+                color: #fc042b !important;
+                font-weight: 700;
+                font-size: 1.1rem;
+                letter-spacing: 0.2px;
+            }
+
+            .nav-link {
+                color: rgba(31, 34, 48, 0.75) !important;
+                transition: color 0.2s ease;
+                font-weight: 600;
+            }
+
+            .nav-link:hover {
+                color: #fc042b !important;
+            }
+
+            .btn-primary {
+                background: #fc042b;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 18px;
+                font-weight: 700;
+                transition: all 0.2s ease;
+                box-shadow: 0 6px 14px rgba(252, 4, 43, 0.25);
+                color: #ffffff;
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 18px rgba(252, 4, 43, 0.35);
+                background: #e00427;
+            }
+
+            .btn-success {
+                background: #1eac4f;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 18px;
+                font-weight: 700;
+                transition: all 0.2s ease;
+                box-shadow: 0 6px 14px rgba(30, 172, 79, 0.25);
+            }
+
+            .btn-success:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 18px rgba(30, 172, 79, 0.35);
+                background: #199444;
+            }
+
+            .btn-danger {
+                background: #fc042b;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 18px;
+                font-weight: 700;
+                transition: all 0.2s ease;
+                box-shadow: 0 6px 14px rgba(252, 4, 43, 0.25);
+                color: #ffffff;
+            }
+
+            .btn-danger:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 18px rgba(252, 4, 43, 0.35);
+                background: #e00427;
+            }
+
+            .btn-outline-primary {
+                border: 2px solid #fc042b;
+                color: #fc042b;
+                background: transparent;
+                font-weight: 700;
+            }
+
+            .btn-outline-primary:hover {
+                background: #fc042b;
+                color: white;
+            }
+
+            .btn-outline-danger {
+                border: 2px solid #fc042b;
+                color: #fc042b;
+                background: transparent;
+                font-weight: 700;
+            }
+
+            .btn-outline-danger:hover {
+                background: #fc042b;
+                color: white;
+            }
+
+            .table {
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 6px 14px rgba(31, 34, 48, 0.08);
+                background: #ffffff;
+            }
+
+            .table thead th {
+                background: #f5f7fb;
+                color: #1f2230;
+                border: none;
+                font-weight: 700;
+                padding: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+
+            .table tbody tr {
+                transition: background-color 0.2s ease;
+                color: #1f2230;
+            }
+
+            .table tbody tr:hover {
+                background-color: #f0f2f7;
+            }
+
+            .table tbody td {
+                padding: 12px 14px;
+                border-bottom: 1px solid #e5e7eb;
+                vertical-align: middle;
+            }
+
+            .form-control {
+                border: 1px solid #dfe3ec;
+                border-radius: 8px;
+                padding: 10px 14px;
+                background: #ffffff;
+                color: #1f2230;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .form-control:focus {
+                border-color: #fc042b;
+                box-shadow: 0 0 0 3px rgba(252, 4, 43, 0.12);
+                background: #ffffff;
+                color: #1f2230;
+            }
+
+            .card, .modal-content {
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                box-shadow: 0 10px 20px rgba(31, 34, 48, 0.08);
+                background: #ffffff;
+            }
+
+            .card-header {
+                background: #ffffff;
+                color: #1f2230;
+                border-bottom: 1px solid #e5e7eb;
+                font-weight: 700;
+            }
+
+            .modal-header {
+                background: #ffffff;
+                color: #1f2230;
+                border-bottom: 1px solid #e5e7eb;
+                border-radius: 12px 12px 0 0;
+                font-weight: 700;
+            }
+
+            .modal-footer {
+                border: none;
+                padding: 18px;
+            }
+
+            .list-group-item {
+                border: none;
+                border-radius: 8px;
+                margin-bottom: 6px;
+                transition: all 0.2s ease;
+                background: #ffffff;
+                color: #1f2230;
+                border: 1px solid #eaecef;
+            }
+
+            .list-group-item:hover {
+                box-shadow: 0 4px 10px rgba(31, 34, 48, 0.08);
+                background: #f7f9fc;
+            }
+
+            .list-group-item.active {
+                background: #fc042b;
+                border: 1px solid #fc042b;
+                color: white;
+            }
+
+            .badge-primary {
+                background: #fc042b;
+                color: white;
+            }
+
+            .badge-secondary {
+                background: #e5e7eb;
+                color: #1f2230;
+            }
+
+            .badge-success {
+                background: #1eac4f;
+                color: white;
+            }
+
+            .badge-warning {
+                background: #ffc107;
+                color: #1f2230;
+            }
+
+            .badge-danger {
+                background: #fc042b;
+                color: white;
+            }
+
+            .alert {
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(31, 34, 48, 0.08);
+                background: #ffffff;
+            }
+
+            .pagination .page-link {
+                border-radius: 6px;
+                margin: 0 3px;
+                border: 1px solid #dfe3ec;
+                color: #1f2230;
+                background: #ffffff;
+                transition: all 0.2s ease;
+            }
+
+            .pagination .page-link:hover {
+                background: #f7f9fc;
+                color: #fc042b;
+            }
+
+            .pagination .page-item.active .page-link {
+                background: #fc042b;
+                border-color: #fc042b;
+                color: white;
+            }
+
+            .pagination .page-item.disabled .page-link {
+                border-color: #e5e7eb;
+                color: #c0c4d3;
+                background: #f7f9fc;
+            }
+
+            .dropdown-menu {
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                box-shadow: 0 10px 24px rgba(31, 34, 48, 0.12);
+                background: #ffffff;
+            }
+
+            .dropdown-item {
+                transition: background-color 0.2s ease;
+                color: #1f2230;
+            }
+
+            .dropdown-item:hover {
+                background: #f7f9fc;
+                color: #fc042b;
+            }
+
+            /* Sidebar styling */
+            .leftContainer {
+                background: #ffffff;
+                border-radius: 10px;
+                padding: 15px;
+                margin-right: 20px;
+                box-shadow: 0 6px 14px rgba(31, 34, 48, 0.08);
+                border: 1px solid #e5e7eb;
+            }
+
+            /* Task status colors */
+            .text-success {
+                color: #1eac4f !important;
+                font-weight: 600;
+            }
+
+            .text-danger {
+                color: #fc042b !important;
+                font-weight: 600;
+            }
+
+            .text-muted {
+                color: rgba(31, 34, 48, 0.6) !important;
+            }
+
+            .text-primary {
+                color: #100041 !important;
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 768px) {
+                .container-fluid {
+                    margin: 10px;
+                    padding: 18px;
+                }
+
+                .navbar {
+                    margin-bottom: 16px;
+                }
+
+                .leftContainer {
+                    margin-right: 0;
+                    margin-bottom: 16px;
+                }
+            }
+        </style>
+    </th:block>
+</head>
+</html>

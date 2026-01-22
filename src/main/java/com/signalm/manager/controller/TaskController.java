@@ -15,7 +15,15 @@ import com.signalm.manager.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +32,11 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +59,11 @@ public class TaskController {
         //      this.commonsMultipartResolver = commonsMultipartResolver;
     }
 
+    @ModelAttribute("_csrf")
+    public CsrfToken getCsrfToken(HttpServletRequest request) {
+        return (CsrfToken) request.getAttribute("_csrf");
+    }
+
     @RequestMapping("/")
     public String defaultTask() {
         return "redirect:/task/tasklist?user_id=-1&page=1";
@@ -57,6 +74,9 @@ public class TaskController {
     public String showTaskList(@RequestParam("user_id") int user_id,
                                @RequestParam("page") int page,
                                @RequestParam(value = "filter_user_id", required = false) Integer filterUserID,
+                               @RequestParam(value = "date_from", required = false) String dateFrom,
+                               @RequestParam(value = "date_to", required = false) String dateTo,
+                               @RequestParam(value = "search", required = false) String search,
                                Model theModel,
                                HttpServletRequest request) {
 
@@ -67,6 +87,19 @@ public class TaskController {
             else
                 session.setAttribute("filter", null);
 
+        }
+        if (dateFrom != null || dateTo != null) {
+            HttpSession session = request.getSession();
+            session.setAttribute("date_from", normalizeDateParam(dateFrom));
+            session.setAttribute("date_to", normalizeDateParam(dateTo));
+        }
+        if (search != null) {
+            String trimmedSearch = search.trim();
+            if (trimmedSearch.isEmpty()) {
+                request.getSession().setAttribute("search", null);
+            } else {
+                request.getSession().setAttribute("search", trimmedSearch);
+            }
         }
 
         prepareModelTaskList(user_id, page, theModel, request);
@@ -111,6 +144,14 @@ public class TaskController {
                           Model theModel,
                           HttpServletRequest request) {
 
+        Task task = taskService.getTask(task_id);
+        if (task == null) {
+            return "redirect:/task/tasklist?user_id=" + user_id + "&page=" + page;
+        }
+        int authUserId = getAuthUser(request).getId();
+        if (task.getCreatedBy().getId() != authUserId) {
+            return "redirect:/task/showtask?user_id=" + user_id + "&page=" + page + "&task_id=" + task_id;
+        }
         prepareModelShowTask(user_id, page, task_id, theModel, request);
 
         return "edittask";
@@ -140,9 +181,24 @@ public class TaskController {
     @GetMapping("/imagedisplay")
     public void showImage(@RequestParam("id") Integer memo_id, HttpServletResponse response) throws IOException {
         Memo item = memoService.getMemo(memo_id);
-        String filename = URLEncoder.encode(item.getFileName().replace(' ', '_'), java.nio.charset.StandardCharsets.UTF_8.toString());
+        if (item == null || item.getFiledata() == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
 
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        String fileName = item.getFileName() != null ? item.getFileName() : "file";
+        String lowerName = fileName.toLowerCase();
+        boolean isImage = lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")
+                || lowerName.endsWith(".gif") || lowerName.endsWith(".webp");
+
+        String contentType = isImage ? "image/" + (lowerName.endsWith(".png") ? "png"
+                : (lowerName.endsWith(".gif") ? "gif" : "jpeg")) : "application/octet-stream";
+        response.setContentType(contentType);
+
+        String filenameSafe = URLEncoder.encode(fileName.replace(' ', '_'), java.nio.charset.StandardCharsets.UTF_8.toString());
+        // Inline for images to allow preview, attachment otherwise
+        String disposition = (isImage ? "inline" : "attachment") + "; filename=\"" + filenameSafe + "\"";
+        response.setHeader("Content-Disposition", disposition);
         response.getOutputStream().write(item.getFiledata());
         response.getOutputStream().close();
     }
@@ -183,17 +239,33 @@ public class TaskController {
                            @RequestParam int user_id,
                            @RequestParam int page,
                            @RequestParam int responsible_id,
+                           @RequestParam(value = "date_begin", required = false) String dateBegin,
+                           @RequestParam(value = "date_end", required = false) String dateEnd,
                            Model theModel,
                            HttpServletRequest request) {
 
         Task task = mapperManager.map(toTask, Task.class);
+        LocalDateTime dateBeginValue = parseDateStart(dateBegin);
+        LocalDateTime dateEndValue = parseDateEnd(dateEnd);
         if (task.getId() == 0) {
             task.setCreatedBy(getAuthUser(request));
             task.setResponsible(userService.getUser(responsible_id));
+            task.setDateCreate(LocalDateTime.now());
+            task.setDateBegin(dateBeginValue != null ? dateBeginValue : LocalDateTime.now());
+            task.setDateEnd(dateEndValue != null ? dateEndValue : LocalDateTime.now());
         } else {
             Task oldTask = taskService.getTask(task.getId());
+            if (oldTask == null) {
+                return "redirect:/task/tasklist?user_id=" + user_id + "&page=" + page;
+            }
+            if (oldTask.getCreatedBy().getId() != getAuthUser(request).getId()) {
+                return "redirect:/task/showtask?user_id=" + user_id + "&page=" + page + "&task_id=" + task.getId();
+            }
             task.setCreatedBy(oldTask.getCreatedBy());
             task.setResponsible(oldTask.getResponsible());
+            task.setDateCreate(oldTask.getDateCreate());
+            task.setDateBegin(dateBeginValue != null ? dateBeginValue : oldTask.getDateBegin());
+            task.setDateEnd(dateEndValue != null ? dateEndValue : oldTask.getDateEnd());
         }
         int task_id = taskService.addTask(task, getAuthUser(request).getId());
         prepareModelShowTask(user_id, page, task_id, theModel, request);
@@ -202,9 +274,9 @@ public class TaskController {
     }
 
 
-    @RequestMapping(value = "/savememo", method = RequestMethod.POST)
-    public String handleFileUpload(@ModelAttribute("memo_to") ToMemo toMemo,
-                                   @RequestParam MultipartFile[] fileUpload,
+    @PostMapping("/savememo")
+    public String handleFileUpload(@RequestParam String memo,
+                                   @RequestParam(required = false) MultipartFile[] fileUpload,
                                    @RequestParam int user_id,
                                    @RequestParam int page,
                                    @RequestParam int task_id,
@@ -212,30 +284,39 @@ public class TaskController {
                                    HttpServletRequest request) {
         User authUser = getAuthUser(request);
 
-        if (fileUpload != null && fileUpload.length > 0) {
-            for (MultipartFile aFile : fileUpload) {
-                toMemo.setFileName(aFile.getOriginalFilename());
+        // Create Memo object
+        Memo memoObj = new Memo();
+        memoObj.setMemo(memo);
+        memoObj.setDateCreate(LocalDateTime.now());
+        memoObj.setCreatedBy(authUser);
 
-                try {
-                    toMemo.setFiledata(aFile.getBytes());
-                    if (Objects.requireNonNull(aFile.getContentType()).contains("image")) toMemo.setPicture(true);
-                } catch (IOException e) {
-                    e.printStackTrace();
+        // Handle file upload
+        if (fileUpload != null && fileUpload.length > 0) {
+            MultipartFile aFile = fileUpload[0]; // Take first file
+            memoObj.setFileName(aFile.getOriginalFilename());
+
+            try {
+                memoObj.setFiledata(aFile.getBytes());
+                if (Objects.requireNonNull(aFile.getContentType()).contains("image")) {
+                    memoObj.setPicture(true);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        Task task = taskService.getTaskWithMemo(task_id);
-        ToTaskFull toTaskFull = mapperManager.map(task, ToTaskFull.class);
 
-        toMemo.setDateCreate(LocalDateTime.now());
-        toMemo.setCreatedBy(authUser);
-        toMemo.setTask(toTaskFull);
+        // Get task and set relationship
+        Task task = taskService.getTask(task_id);
+        memoObj.setTask(task);
 
-        memoService.addMemo(mapperManager.map(toMemo, Memo.class));
+        // Save memo
+        memoService.addMemo(memoObj);
+
+        // Mark task as not viewed for other users
         taskService.setViewedTask(task, authUser.getId(), false);
-        prepareModelShowTask(user_id, page, task_id, theModel, request);
 
-        return "showtask";
+        // Redirect back to task view
+        return "redirect:/task/showtask?user_id=" + user_id + "&page=" + page + "&task_id=" + task_id;
     }
 
 
@@ -255,11 +336,11 @@ public class TaskController {
         }
             Integer filterUserID = (Integer) request.getSession().getAttribute("filter");
 
-            theModel.addAttribute("userList", userList);
-            theModel.addAttribute("user_id", user_id);
-            theModel.addAttribute("auth_user", authUser);
-            theModel.addAttribute("page", page);
-            theModel.addAttribute("filter_user_id", filterUserID);
+        theModel.addAttribute("userList", userList);
+        theModel.addAttribute("user_id", user_id);
+        theModel.addAttribute("auth_user", authUser);
+        theModel.addAttribute("page", page);
+        theModel.addAttribute("filter_user_id", filterUserID);
 
     }
 
@@ -269,14 +350,19 @@ public class TaskController {
                                       HttpServletRequest request) {
         ToUser authUser = new ToUser(getAuthUser(request));
         Integer filterUserID = (Integer) request.getSession().getAttribute("filter");
+        String dateFrom = (String) request.getSession().getAttribute("date_from");
+        String dateTo = (String) request.getSession().getAttribute("date_to");
+        String search = (String) request.getSession().getAttribute("search");
         List<ToUser> userList = userService.getUsersWithCountTask().stream().map(ToUser::new).collect(Collectors.toList());
         List<ToUser> userListFilter = userService.getUsers().stream().map(ToUser::new).collect(Collectors.toList());
+        LocalDateTime dateFromValue = parseDateStart(dateFrom);
+        LocalDateTime dateToValue = parseDateEnd(dateTo);
 
         List<ToTask> taskList;
         if (user_id == -1) {
-            taskList = taskService.getMyTasks(authUser.getId(), filterUserID, page).stream().map(post -> mapperManager.map(post, ToTask.class)).collect(Collectors.toList());
+            taskList = taskService.getMyTasks(authUser.getId(), filterUserID, search, dateFromValue, dateToValue, page).stream().map(post -> mapperManager.map(post, ToTask.class)).collect(Collectors.toList());
         } else {
-            taskList = taskService.getTasks(user_id, filterUserID, page).stream().map(post -> mapperManager.map(post, ToTask.class)).collect(Collectors.toList());
+            taskList = taskService.getTasks(user_id, filterUserID, search, dateFromValue, dateToValue, page).stream().map(post -> mapperManager.map(post, ToTask.class)).collect(Collectors.toList());
         }
         List<Integer> pageList = Utils.getPagin(page);
         theModel.addAttribute("taskList", taskList);
@@ -287,12 +373,50 @@ public class TaskController {
         theModel.addAttribute("auth_user", authUser);
         theModel.addAttribute("page", page);
         theModel.addAttribute("filter_user_id", filterUserID);
+        theModel.addAttribute("search", search);
+        theModel.addAttribute("date_from", dateFrom);
+        theModel.addAttribute("date_to", dateTo);
         if (filterUserID != null)
             theModel.addAttribute("filter_user_name", (userService.getUser(filterUserID).getFullName()));
         else
             theModel.addAttribute("filter_user_name", "Фильтр");
 
+        // Add CSRF token for Thymeleaf forms
+        theModel.addAttribute("_csrf", request.getAttribute("_csrf"));
 
+
+    }
+
+    private String normalizeDateParam(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private LocalDateTime parseDateStart(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            return date.atStartOfDay();
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
+    }
+
+    private LocalDateTime parseDateEnd(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            return date.atTime(LocalTime.MAX);
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
     }
 
     private User getAuthUser(HttpServletRequest request) {

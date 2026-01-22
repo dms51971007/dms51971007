@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Access denied</title>
+</head>
+<body>
+<h2>Access denied</h2>
+<hr>
+<div th:if="${message != null}">
+    <h4 th:text="${status}">Status</h4>
+    <p th:text="${message}">Message</p>
+</div>
+</body>
+</html>

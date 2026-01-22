@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Просмотр задачи</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:replace="fragments/libs :: libs"></th:block>
+
+    <script type="text/javascript">
+        function displayModal(button) {
+            document.getElementById("refDelete").action = button.dataset.ref;
+            document.getElementById("del_user_id").value = button.dataset.userId;
+            document.getElementById("del_task_id").value = button.dataset.taskId;
+            document.getElementById("del_page").value = button.dataset.page;
+            document.getElementById("del_memo_id").value = button.dataset.memoId;
+        }
+    </script>
+</head>
+
+<body>
+<!-- Delete Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #ffffff; color: #1f2230; border-bottom: 1px solid #e5e7eb;">
+                <h5 class="modal-title" id="exampleModalLabel">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Внимание!
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Вы действительно хотите удалить это примечание?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Отмена
+                </button>
+                <form id="refDelete" method="get">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash mr-1"></i>Удалить
+                    </button>
+                    <input type="hidden" name="user_id" id="del_user_id" value=""/>
+                    <input type="hidden" name="task_id" id="del_task_id" value=""/>
+                    <input type="hidden" name="page" id="del_page" value=""/>
+                    <input type="hidden" name="memo_id" id="del_memo_id" value=""/>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="py-1">
+    <div class="container-fluid">
+        <th:block th:replace="fragments/head :: head(${auth_user})"></th:block>
+
+        <div class="row">
+            <th:block th:replace="fragments/menu :: menu(${userList}, ${user_id})"></th:block>
+            <div class="col">
+                <!-- Task Header -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header" style="background: #ffffff; color: #1f2230; border-bottom: 1px solid #e5e7eb;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-task-alt mr-2"></i>
+                                <span th:text="${task_to.title}">Название задачи</span>
+                            </h5>
+                            <div>
+                                <span th:if="${task_to.isDone}" class="badge badge-success">
+                                    <i class="fas fa-check mr-1"></i>Выполнено
+                                </span>
+                                <span th:if="${!task_to.isDone}" class="badge badge-warning">
+                                    <i class="fas fa-clock mr-1"></i>В работе
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-calendar-plus mr-1"></i>Дата создания</h6>
+                                    <p class="mb-0 font-weight-medium" th:text="${#temporals.format(task_to.dateBegin, 'dd.MM.yyyy HH:mm')}">01.01.2024 12:00</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-clock mr-1"></i>Срок выполнения</h6>
+                                    <p class="mb-0 font-weight-medium" th:text="${#temporals.format(task_to.dateEnd, 'dd.MM.yyyy HH:mm')}">01.01.2024 12:00</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-user-plus mr-1"></i>Заказчик</h6>
+                                    <p class="mb-0 font-weight-medium" th:text="${task_to.createdBy.fullName}">Имя заказчика</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2"><i class="fas fa-user-cog mr-1"></i>Исполнитель</h6>
+                                    <p class="mb-0 font-weight-medium" th:text="${task_to.responsible.fullName}">Имя исполнителя</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="text-muted mb-2"><i class="fas fa-align-left mr-1"></i>Описание</h6>
+                            <p class="mb-0" th:text="${task_to.memo}">Описание задачи...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Memo Section -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-comments mr-2 text-primary"></i>Примечания
+                                <span class="badge badge-primary ml-2" th:text="${#lists.size(task_to.memoList)}">0</span>
+                            </h6>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Add Memo Form -->
+                        <form th:action="@{/task/savememo}" method="post" enctype="multipart/form-data" class="mb-4">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" th:value="${user_id}" name="user_id"/>
+                            <input type="hidden" th:value="${page}" name="page"/>
+                            <input type="hidden" th:value="${task_to.id}" name="task_id"/>
+
+                            <div class="form-group">
+                                <textarea name="memo" rows="3" placeholder="Добавить примечание..."
+                                          class="form-control" required></textarea>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <input type="file" name="fileUpload" class="form-control-file" multiple/>
+                                    <small class="form-text text-muted">Можно прикрепить файлы</small>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane mr-1"></i>Отправить
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Memo List -->
+                        <div th:if="${!#lists.isEmpty(task_to.memoList)}">
+                            <div th:each="memo : ${task_to.memoList}" class="memo-item border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="avatar-circle bg-secondary text-white mr-2"
+                                                 style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
+                                                <span th:text="${memo.createdBy.name != null and memo.createdBy.name.length() > 0} ? ${memo.createdBy.name.substring(0,1)} : '?'"></span>
+                                            </div>
+                                            <div>
+                                                <span class="font-weight-medium" th:text="${memo.createdBy.fullName}">Автор</span>
+                                                <small class="text-muted ml-2" th:text="${#temporals.format(memo.dateCreate, 'dd.MM.yyyy HH:mm')}">дата</small>
+                                            </div>
+                                        </div>
+                                        <p class="mb-2" th:text="${memo.memo}">Текст примечания...</p>
+
+                                        <!-- File attachment -->
+                                        <div th:if="${memo.fileName != null and memo.fileName != ''}" class="mb-2">
+                                            <a th:href="@{'/task/imagedisplay?id=' + ${memo.id}}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-paperclip mr-1"></i>
+                                                <span th:text="${memo.fileName}">filename</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button th:if="${memo.createdBy.id == auth_user.id or auth_user.admin}"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-toggle="modal" data-target="#exampleModal"
+                                                th:attr="data-ref=@{/task/deletememo},
+                                                         data-user-id=${user_id},
+                                                         data-task-id=${task_to.id},
+                                                         data-page=${page},
+                                                         data-memo-id=${memo.id}"
+                                                onclick="displayModal(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(task_to.memoList)}" class="text-center py-4">
+                            <i class="fas fa-comments fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Примечаний пока нет</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between">
+                    <a th:href="@{/task/tasklist(user_id=${user_id},page=${page})}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i>Назад к списку
+                    </a>
+                    <div>
+                        <a th:if="${task_to.responsible.id == auth_user.id}"
+                           th:href="@{/task/finishtask(user_id=${user_id},task_id=${task_to.id},page=${page})}"
+                           th:class="${task_to.isDone} ? 'btn btn-danger mr-2' : 'btn btn-success mr-2'">
+                            <i class="fas fa-check mr-1"></i>
+                            <span th:text="${task_to.isDone} ? 'Отменить' : 'Выполнить'">Выполнить</span>
+                        </a>
+                        <a th:if="${task_to.createdBy.id == auth_user.id}"
+                           th:href="@{/task/edittask(user_id=${user_id},page=${page},task_id=${task_to.id})}"
+                           class="btn btn-primary mr-2">
+                            <i class="fas fa-edit mr-1"></i>Редактировать
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

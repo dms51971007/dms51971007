@@ -2,16 +2,18 @@ package com.signalm.manager.serv;
 
 import com.signalm.manager.DAO.MemoDAO;
 import com.signalm.manager.model.Memo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 public class MemoServiceImpl implements MemoService {
-    @Autowired
-    private MemoDAO memoDAO;
+    private final MemoDAO memoDAO;
+
+    public MemoServiceImpl(MemoDAO memoDAO) {
+        this.memoDAO = memoDAO;
+    }
 
     @Override
     public void addMemo(Memo memo) {
@@ -25,7 +27,11 @@ public class MemoServiceImpl implements MemoService {
 
     @Override
     public void deleteMemo(int id, int authUserID ) {
-        if (memoDAO.getMemo(id).getTask().getCreatedBy().getId() == authUserID)
-        memoDAO.deleteMemo(id);
+        Memo memo = memoDAO.getMemo(id);
+        if (memo != null && memo.getTask() != null
+                && memo.getTask().getCreatedBy() != null
+                && memo.getTask().getCreatedBy().getId() == authUserID) {
+            memoDAO.deleteMemo(id);
+        }
     }
 }

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Список задач</title>
+    <th:block th:replace="fragments/libs :: libs"></th:block>
+</head>
+
+<body>
+<div class="py-1">
+    <div class="container-fluid">
+        <th:block th:replace="fragments/head :: head(${auth_user})"></th:block>
+
+        <!-- Мобильное меню -->
+        <div class="d-block d-md-none mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: #ffffff; color: #1f2230; border-bottom: 1px solid #e5e7eb;">
+                    <h6 class="mb-0"><i class="fas fa-users mr-2"></i>Пользователи</h6>
+                </div>
+                <div class="card-body p-2">
+                    <div class="row">
+                        <div class="col-6 col-sm-4 mb-2">
+                            <a th:href="@{/task/tasklist(user_id=-1,page=1)}"
+                               class="btn btn-block text-left"
+                               th:classappend="${user_id == -1} ? 'btn-danger' : 'btn-outline-secondary'">
+                                <i class="fas fa-home mr-1"></i>Свои задачи
+                            </a>
+                        </div>
+                        <th:block th:each="user : ${userList}">
+                            <div class="col-6 col-sm-4 mb-2">
+                                <a th:href="@{/task/tasklist(user_id=${user.id},page=1)}"
+                                   class="btn btn-block text-left position-relative"
+                                   th:classappend="${user.id == user_id} ? 'btn-danger' : 'btn-outline-secondary'">
+                                    <span th:text="${user.fullName}" class="d-block">Пользователь</span>
+                                    <span class="badge badge-pill position-absolute"
+                                          th:classappend="${user.id == user_id} ? 'badge-light' : 'badge-secondary'"
+                                          th:style="${user.id == user_id} ? 'top: -5px; right: -5px; background: #ffffff; color: #fc042b;' : 'top: -5px; right: -5px; background: #e5e7eb; color: #1f2230;'"
+                                          th:text="${user.numActiveTask}">0</span>
+                                </a>
+                            </div>
+                        </th:block>
+                    </div>
+                    <div th:if="${#lists.isEmpty(userList)}" class="text-center text-muted py-3">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <p>Список пользователей пуст</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row flex-column flex-md-row">
+            <div class="col-12 col-md-auto order-2 order-md-1">
+                <th:block th:replace="fragments/menu :: menu(${userList}, ${user_id})"></th:block>
+            </div>
+            <div class="col-12 col-md order-1 order-md-2">
+                <div class="row mb-4">
+                    <div class="col">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <button th:if="${user_id != -1}" class="btn btn-success"
+                                        th:onclick="'location.href=\'' + @{/task/addtask(user_id=${user_id},page=${page})} + '\''">
+                                    <i class="fas fa-plus mr-1"></i>Создать задачу
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <form class="form-inline mr-2" th:action="@{/task/tasklist}" method="get">
+                                    <input type="hidden" name="user_id" th:value="${user_id}">
+                                    <input type="hidden" name="page" value="1">
+                                    <input type="hidden" name="filter_user_id" th:value="${filter_user_id != null ? filter_user_id : -1}">
+                                    <span class="mr-1">С:</span>
+                                    <input type="date" class="form-control mr-2 w-auto" name="date_from"
+                                           th:value="${date_from}">
+                                    <span class="mr-1">По:</span>
+                                    <input type="date" class="form-control mr-2 w-auto" name="date_to"
+                                           th:value="${date_to}">
+                                    <input type="text" class="form-control mr-2" name="search" placeholder="Поиск по названию"
+                                           th:value="${search}">
+                                    <button class="btn btn-outline-primary" type="submit" title="Поиск">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </form>
+                                <div class="dropdown mr-2">
+                                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Фильтр по пользователям">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="filterDropdown">
+                                        <th:block th:each="user : ${userListFilter}">
+                                            <a class="dropdown-item" th:href="@{/task/tasklist(user_id=${user_id},page=${page},filter_user_id=${user.id},search=${search},date_from=${date_from},date_to=${date_to})}">
+                                                <i class="fas fa-user mr-2"></i>
+                                                <span th:text="${user.fullName}">Пользователь</span>
+                                            </a>
+                                        </th:block>
+                                    </div>
+                                </div>
+                                <a class="btn btn-outline-secondary mr-2"
+                                   th:href="@{/task/tasklist(user_id=${user_id},page=1,filter_user_id=-1,search='',date_from='',date_to='')}"
+                                   title="Очистить фильтры">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="taskTable">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th scope="col" class="border-0 d-none d-sm-table-cell">#</th>
+                                    <th scope="col" class="border-0 d-none d-md-table-cell">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        <span class="d-none d-lg-inline">Дата создания</span>
+                                    </th>
+                                    <th scope="col" class="border-0">
+                                        <i class="fas fa-heading mr-1"></i>
+                                        <span class="d-none d-md-inline">Название</span>
+                                    </th>
+                                    <th scope="col" class="border-0 d-none d-md-table-cell">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span class="d-none d-lg-inline">Срок</span>
+                                    </th>
+                                    <th scope="col" class="border-0 d-none d-md-table-cell">
+                                        <i class="fas fa-user mr-1"></i>
+                                        <span class="d-none d-lg-inline" th:text="${user_id == -1} ? 'Исполнитель' : 'Заказчик'">Пользователь</span>
+                                    </th>
+                                    <th scope="col" class="border-0">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        <span class="d-none d-md-inline">Статус</span>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="task : ${taskList}"
+                                    th:onclick="'location.href=\'' + @{/task/showtask(task_id=${task.id},user_id=${user_id},page=${page})} + '\''"
+                                    class="cursor-pointer"
+                                    th:classappend="${task.isViewed} ? '' : 'font-weight-bold'"
+                                    style="cursor: pointer; transition: background-color 0.2s;">
+                                    <td class="d-none d-sm-table-cell">
+                                        <span th:text="${task.id}" class="badge badge-secondary">#[[${task.id}]]</span>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <span th:text="${#temporals.format(task.dateBegin, 'dd.MM.yyyy HH:mm')}" class="text-muted"></span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span th:text="${task.title}" class="font-weight-medium"></span>
+                                            <span th:if="${!task.isViewed}" class="badge badge-warning ml-2">Новое</span>
+                                        </div>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <span th:text="${#temporals.format(task.dateEnd, 'dd.MM.yyyy HH:mm')}"
+                                              th:class="${task.isDone ? 'text-success' : 'text-muted'}">
+                                        </span>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <span th:text="${user_id == -1} ? ${task.responsible.fullName} : ${task.createdBy.fullName}"></span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${task.isDone}" class="badge badge-success">
+                                            <i class="fas fa-check mr-1"></i>Выполнено
+                                        </span>
+                                        <span th:if="${!task.isDone}" class="badge badge-warning">
+                                            <i class="fas fa-clock mr-1"></i>В работе
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(taskList)}">
+                                    <td colspan="2" class="text-center py-4">
+                                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted mb-0">Задач не найдено</p>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-center mt-4" th:if="${!#lists.isEmpty(taskList)}">
+                    <nav aria-label="Task pagination">
+                        <ul class="pagination">
+                            <li class="page-item" th:classappend="${pageList[0] == null} ? 'disabled' : ''">
+                                <a class="page-link" th:href="${pageList[0] != null} ? @{/task/tasklist(user_id=${user_id},page=${pageList[0]},filter_user_id=${filter_user_id != null ? filter_user_id : -1},search=${search},date_from=${date_from},date_to=${date_to})} : '#'">
+                                    <i class="fas fa-chevron-left"></i> Предыдущая
+                                </a>
+                            </li>
+                            <li th:each="pageNum, iterStat : ${pageList}" th:if="${pageNum != null and iterStat.index > 0 and iterStat.index < pageList.size() - 1}"
+                                class="page-item" th:classappend="${pageNum == page} ? 'active' : ''">
+                                <a class="page-link" th:href="@{/task/tasklist(user_id=${user_id},page=${pageNum},filter_user_id=${filter_user_id != null ? filter_user_id : -1},search=${search},date_from=${date_from},date_to=${date_to})}"
+                                   th:text="${pageNum}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${pageList[pageList.size() - 1] == null} ? 'disabled' : ''">
+                                <a class="page-link" th:href="${pageList[pageList.size() - 1] != null} ? @{/task/tasklist(user_id=${user_id},page=${pageList[pageList.size() - 1]},filter_user_id=${filter_user_id != null ? filter_user_id : -1},search=${search},date_from=${date_from},date_to=${date_to})} : '#'">
+                                    Следующая <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        function clampTaskRows() {
+            var table = document.getElementById('taskTable');
+            if (!table) return;
+            var tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            if (!rows.length) return;
+
+            // Reset rows first to measure correctly
+            rows.forEach(function (row) {
+                row.style.display = '';
+            });
+
+            var firstRow = rows[0];
+            var rowRect = firstRow.getBoundingClientRect();
+            if (!rowRect.height) return;
+
+            var tableRect = table.getBoundingClientRect();
+            var available = window.innerHeight - tableRect.top - 64; // keep larger bottom gap
+            var headerHeight = table.querySelector('thead') ? table.querySelector('thead').getBoundingClientRect().height : 0;
+            var maxRows = Math.max(1, Math.floor((available - headerHeight) / rowRect.height));
+
+            rows.forEach(function (row, index) {
+                if (index >= maxRows) {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('resize', clampTaskRows);
+        window.addEventListener('load', clampTaskRows);
+    })();
+</script>
+</body>
+</html>
