@@ -141,7 +141,7 @@
                                         <span th:text="${task.id}" class="badge badge-secondary">#[[${task.id}]]</span>
                                     </td>
                                     <td class="d-none d-md-table-cell">
-                                        <span th:text="${#temporals.format(task.dateBegin, 'dd.MM.yyyy HH:mm')}" class="text-muted"></span>
+                                        <span th:text="${task.dateBegin != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task.dateBegin, 'dd.MM.yyyy HH:mm') : ''}" class="text-muted"></span>
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -150,7 +150,7 @@
                                         </div>
                                     </td>
                                     <td class="d-none d-md-table-cell">
-                                        <span th:text="${#temporals.format(task.dateEnd, 'dd.MM.yyyy HH:mm')}"
+                                        <span th:text="${task.dateEnd != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task.dateEnd, 'dd.MM.yyyy HH:mm') : ''}"
                                               th:class="${task.isDone ? 'text-success' : 'text-muted'}">
                                         </span>
                                     </td>
@@ -204,40 +204,5 @@
         </div>
     </div>
 </div>
-<script>
-    (function () {
-        function clampTaskRows() {
-            var table = document.getElementById('taskTable');
-            if (!table) return;
-            var tbody = table.querySelector('tbody');
-            if (!tbody) return;
-            var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
-            if (!rows.length) return;
-
-            // Reset rows first to measure correctly
-            rows.forEach(function (row) {
-                row.style.display = '';
-            });
-
-            var firstRow = rows[0];
-            var rowRect = firstRow.getBoundingClientRect();
-            if (!rowRect.height) return;
-
-            var tableRect = table.getBoundingClientRect();
-            var available = window.innerHeight - tableRect.top - 64; // keep larger bottom gap
-            var headerHeight = table.querySelector('thead') ? table.querySelector('thead').getBoundingClientRect().height : 0;
-            var maxRows = Math.max(1, Math.floor((available - headerHeight) / rowRect.height));
-
-            rows.forEach(function (row, index) {
-                if (index >= maxRows) {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        window.addEventListener('resize', clampTaskRows);
-        window.addEventListener('load', clampTaskRows);
-    })();
-</script>
 </body>
 </html>

@@ -170,6 +170,8 @@ public class TaskController {
         tm.setDateEnd(LocalDateTime.now());
         tm.setDateComplete(null);
         tm.setResponsible(new ToUser(userService.getUser(user_id)));
+        // Автоматически устанавливаем заказчика как текущего пользователя
+        tm.setCreatedBy(new ToUser(getAuthUser(request)));
         tm.setIsViewed(false);
         theModel.addAttribute("task_to", tm);
         // theModel.addAttribute("responsible_id", user_id);

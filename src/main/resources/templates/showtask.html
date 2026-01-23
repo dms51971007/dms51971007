@@ -12,7 +12,15 @@
             document.getElementById("del_user_id").value = button.dataset.userId;
             document.getElementById("del_task_id").value = button.dataset.taskId;
             document.getElementById("del_page").value = button.dataset.page;
-            document.getElementById("del_memo_id").value = button.dataset.memoId;
+            document.getElementById("del_memo_id").value = button.dataset.memoId || '';
+            
+            // Update modal message based on what is being deleted
+            var modalMessage = document.getElementById("modalMessage");
+            if (button.dataset.memoId) {
+                modalMessage.textContent = "Вы действительно хотите удалить это примечание?";
+            } else {
+                modalMessage.textContent = "Вы действительно хотите удалить эту задачу?";
+            }
         }
     </script>
 </head>
@@ -32,7 +40,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p class="mb-0">Вы действительно хотите удалить это примечание?</p>
+                <p class="mb-0" id="modalMessage">Вы действительно хотите удалить это примечание?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -82,11 +90,11 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <h6 class="text-muted mb-2"><i class="fas fa-calendar-plus mr-1"></i>Дата создания</h6>
-                                    <p class="mb-0 font-weight-medium" th:text="${#temporals.format(task_to.dateBegin, 'dd.MM.yyyy HH:mm')}">01.01.2024 12:00</p>
+                                    <p class="mb-0 font-weight-medium" th:text="${task_to.dateBegin != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task_to.dateBegin, 'dd.MM.yyyy HH:mm') : ''}">01.01.2024 12:00</p>
                                 </div>
                                 <div class="mb-3">
                                     <h6 class="text-muted mb-2"><i class="fas fa-clock mr-1"></i>Срок выполнения</h6>
-                                    <p class="mb-0 font-weight-medium" th:text="${#temporals.format(task_to.dateEnd, 'dd.MM.yyyy HH:mm')}">01.01.2024 12:00</p>
+                                    <p class="mb-0 font-weight-medium" th:text="${task_to.dateEnd != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task_to.dateEnd, 'dd.MM.yyyy HH:mm') : ''}">01.01.2024 12:00</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -152,7 +160,7 @@
                                             </div>
                                             <div>
                                                 <span class="font-weight-medium" th:text="${memo.createdBy.fullName}">Автор</span>
-                                                <small class="text-muted ml-2" th:text="${#temporals.format(memo.dateCreate, 'dd.MM.yyyy HH:mm')}">дата</small>
+                                                <small class="text-muted ml-2" th:text="${memo.dateCreate != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(memo.dateCreate, 'dd.MM.yyyy HH:mm') : ''}">дата</small>
                                             </div>
                                         </div>
                                         <p class="mb-2" th:text="${memo.memo}">Текст примечания...</p>
@@ -206,6 +214,16 @@
                            class="btn btn-primary mr-2">
                             <i class="fas fa-edit mr-1"></i>Редактировать
                         </a>
+                        <button th:if="${task_to.createdBy.id == auth_user.id}"
+                                class="btn btn-danger"
+                                data-toggle="modal" data-target="#exampleModal"
+                                th:attr="data-ref=@{/task/deletetask},
+                                         data-user-id=${user_id},
+                                         data-task-id=${task_to.id},
+                                         data-page=${page}"
+                                onclick="displayModal(this)">
+                            <i class="fas fa-trash mr-1"></i>Удалить
+                        </button>
                     </div>
                 </div>
             </div>

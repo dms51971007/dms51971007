@@ -65,14 +65,14 @@
                                     <div class="form-group">
                                         <label for="dateBeginInput"><i class="fas fa-calendar-plus mr-1"></i>Дата начала</label>
                                         <input type="date" class="form-control" id="dateBeginInput" name="date_begin"
-                                               th:value="${task_to.dateBegin != null ? #temporals.format(task_to.dateBegin, 'yyyy-MM-dd') : ''}">
+                                               th:value="${task_to.dateBegin != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task_to.dateBegin, 'yyyy-MM-dd') : ''}">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="dateEndInput"><i class="fas fa-clock mr-1"></i>Срок выполнения</label>
                                         <input type="date" class="form-control" id="dateEndInput" name="date_end"
-                                               th:value="${task_to.dateEnd != null ? #temporals.format(task_to.dateEnd, 'yyyy-MM-dd') : ''}">
+                                               th:value="${task_to.dateEnd != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task_to.dateEnd, 'yyyy-MM-dd') : ''}">
                                     </div>
                                 </div>
                             </div>
@@ -80,17 +80,21 @@
                             <input type="hidden" name="createdBy_id" th:value="${task_to.id != null and task_to.id != 0 ? (task_to.createdBy != null ? task_to.createdBy.id : '') : auth_user.id}"/>
                             <input type="hidden" name="responsible_id" th:value="${task_to.responsible != null ? task_to.responsible.id : user_id}"/>
 
-                            <div class="row" th:if="${task_to.id != null and task_to.id != 0}">
+                            <div class="row">
                                 <div class="col-md-6">
-                                    <div class="form-group mt-5">
+                                    <div class="form-group mt-3">
                                         <label for="createdBy"><i class="fas fa-user-plus mr-1"></i>Заказчик</label>
-                                        <input type="text" class="form-control" id="createdBy" th:value="${task_to.createdBy != null ? task_to.createdBy.fullName : ''}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                        <input type="text" class="form-control" id="createdBy" 
+                                               th:value="${task_to.createdBy != null ? task_to.createdBy.fullName : auth_user.fullName}" 
+                                               readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="form-group mt-5">
+                                    <div class="form-group mt-3">
                                         <label for="responsible"><i class="fas fa-user-cog mr-1"></i>Исполнитель</label>
-                                        <input type="text" class="form-control" id="responsible" th:value="${task_to.responsible != null ? task_to.responsible.fullName : ''}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                        <input type="text" class="form-control" id="responsible" 
+                                               th:value="${task_to.responsible != null ? task_to.responsible.fullName : ''}" 
+                                               readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                     </div>
                                 </div>
                             </div>
