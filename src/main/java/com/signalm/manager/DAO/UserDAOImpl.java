@@ -1,10 +1,12 @@
 package com.signalm.manager.DAO;
 
 import com.signalm.manager.model.User;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -13,26 +15,24 @@ import java.util.List;
 @Repository("UserDAO")
 public class UserDAOImpl implements UserDAO {
 
-    private final SessionFactory sessionFactory;
+    private static final Logger logger = LoggerFactory.getLogger(UserDAOImpl.class);
 
-    @Autowired
-    public UserDAOImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<User> getUsers() {
-        Session session = sessionFactory.getCurrentSession();
-        Query<User> query = session.createQuery(
+        logger.info("UserDAO.getUsers");
+        TypedQuery<User> query = entityManager.createQuery(
                 "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles", User.class);
         return query.getResultList();
     }
 
     @Override
     public List<User> getUsersWithCountTask() {
-        Session session = sessionFactory.getCurrentSession();
+        logger.info("UserDAO.getUsersWithCountTask");
         // Get users with task counts - using subquery to avoid grouping issues with JOIN FETCH
-        Query query = session.createQuery(
+        Query query = entityManager.createQuery(
                 "SELECT u.id, SUM(CASE WHEN t.isDone = true THEN 0 ELSE 1 END) as num_task " +
                 "FROM User u LEFT OUTER JOIN Task t ON t.responsible.id = u.id " +
                 "WHERE u.islist = true " +
@@ -49,7 +49,7 @@ public class UserDAOImpl implements UserDAO {
         }
 
         // Fetch users with roles in a single optimized query
-        Query<User> userQuery = session.createQuery(
+        TypedQuery<User> userQuery = entityManager.createQuery(
                 "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id IN :ids", User.class);
         userQuery.setParameter("ids", userIds);
         List<User> users = userQuery.getResultList();
@@ -73,14 +73,14 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public User getUser(int id) {
-        Session session = sessionFactory.getCurrentSession();
-        return session.find(User.class, id);
+        logger.info("UserDAO.getUser id={}", id);
+        return entityManager.find(User.class, id);
     }
 
     @Override
     public User findByUserName(String theUserName) {
-        Session currentSession = sessionFactory.getCurrentSession();
-        Query<User> theQuery = currentSession.createQuery(
+        logger.info("UserDAO.findByUserName username={}", theUserName);
+        TypedQuery<User> theQuery = entityManager.createQuery(
                 "SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.userName = :uName", User.class);
         theQuery.setParameter("uName", theUserName);
         List<User> results = theQuery.getResultList();
@@ -89,11 +89,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public void save(User theUser) {
-        // get current hibernate session
-        Session currentSession = sessionFactory.getCurrentSession();
-
-        // create the user ... finally LOL
-        currentSession.saveOrUpdate(theUser);
+        logger.info("UserDAO.save id={} username={}", theUser.getId(), theUser.getUserName());
+        entityManager.merge(theUser);
     }
 
 

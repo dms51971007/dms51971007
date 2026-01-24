@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Управление пользователями</title>
-    <th:block th:replace="fragments/libs :: libs"></th:block>
+    <th:block th:replace="~{fragments/libs :: libs}"></th:block>
 
     <script type="text/javascript">
         function displayModal(button) {
@@ -115,7 +115,7 @@
 
 <div class="py-1">
     <div class="container-fluid">
-        <th:block th:replace="fragments/head :: head(${auth_user})"></th:block>
+        <th:block th:replace="~{fragments/head :: head(${auth_user})}"></th:block>
 
         <div class="row">
             <div class="col">

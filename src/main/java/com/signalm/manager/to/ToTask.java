@@ -1,9 +1,7 @@
 package com.signalm.manager.to;
 
-import com.signalm.manager.model.Task;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Column;
 import java.time.LocalDateTime;
 
 public class ToTask {

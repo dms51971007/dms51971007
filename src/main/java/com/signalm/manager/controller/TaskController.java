@@ -10,28 +10,24 @@ import com.signalm.manager.to.ToMemo;
 import com.signalm.manager.to.ToTask;
 import com.signalm.manager.to.ToTaskFull;
 import com.signalm.manager.to.ToUser;
-import com.signalm.manager.util.MapperManager;
 import com.signalm.manager.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -44,8 +40,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/task")
 public class TaskController {
     private final UserService userService;
-
-    private final MapperManager mapperManager = new MapperManager();
 
     private final TaskService taskService;
 
@@ -71,8 +65,8 @@ public class TaskController {
 
 
     @GetMapping("/tasklist")
-    public String showTaskList(@RequestParam("user_id") int user_id,
-                               @RequestParam("page") int page,
+    public String showTaskList(@RequestParam(value = "user_id", defaultValue = "-1") int user_id,
+                               @RequestParam(value = "page", defaultValue = "1") int page,
                                @RequestParam(value = "filter_user_id", required = false) Integer filterUserID,
                                @RequestParam(value = "date_from", required = false) String dateFrom,
                                @RequestParam(value = "date_to", required = false) String dateTo,
@@ -246,12 +240,17 @@ public class TaskController {
                            Model theModel,
                            HttpServletRequest request) {
 
-        Task task = mapperManager.map(toTask, Task.class);
+        User authUser = getAuthUser(request);
+        Task task = toTaskEntity(toTask);
         LocalDateTime dateBeginValue = parseDateStart(dateBegin);
         LocalDateTime dateEndValue = parseDateEnd(dateEnd);
+        User responsibleUser = userService.getUser(responsible_id);
+        if (responsibleUser == null) {
+            responsibleUser = authUser;
+        }
         if (task.getId() == 0) {
-            task.setCreatedBy(getAuthUser(request));
-            task.setResponsible(userService.getUser(responsible_id));
+            task.setCreatedBy(authUser);
+            task.setResponsible(responsibleUser);
             task.setDateCreate(LocalDateTime.now());
             task.setDateBegin(dateBeginValue != null ? dateBeginValue : LocalDateTime.now());
             task.setDateEnd(dateEndValue != null ? dateEndValue : LocalDateTime.now());
@@ -260,16 +259,17 @@ public class TaskController {
             if (oldTask == null) {
                 return "redirect:/task/tasklist?user_id=" + user_id + "&page=" + page;
             }
-            if (oldTask.getCreatedBy().getId() != getAuthUser(request).getId()) {
+            if (oldTask.getCreatedBy().getId() != authUser.getId()) {
                 return "redirect:/task/showtask?user_id=" + user_id + "&page=" + page + "&task_id=" + task.getId();
             }
-            task.setCreatedBy(oldTask.getCreatedBy());
-            task.setResponsible(oldTask.getResponsible());
+            task.setCreatedBy(oldTask.getCreatedBy() != null ? oldTask.getCreatedBy() : authUser);
+            task.setResponsible(responsibleUser != null ? responsibleUser
+                    : (oldTask.getResponsible() != null ? oldTask.getResponsible() : authUser));
             task.setDateCreate(oldTask.getDateCreate());
             task.setDateBegin(dateBeginValue != null ? dateBeginValue : oldTask.getDateBegin());
             task.setDateEnd(dateEndValue != null ? dateEndValue : oldTask.getDateEnd());
         }
-        int task_id = taskService.addTask(task, getAuthUser(request).getId());
+        int task_id = taskService.addTask(task, authUser.getId());
         prepareModelShowTask(user_id, page, task_id, theModel, request);
 
         return "showtask";
@@ -327,12 +327,12 @@ public class TaskController {
                                       int task_id,
                                       Model theModel,
                                       HttpServletRequest request) {
-        ToUser authUser = mapperManager.map(request.getSession().getAttribute("user"), ToUser.class);
+        ToUser authUser = new ToUser((User) request.getSession().getAttribute("user"));
 
         List<ToUser> userList = userService.getUsersWithCountTask().stream().map(ToUser::new).collect(Collectors.toList());
         if (task_id != 0) {
             Task task = taskService.getTaskWithMemo(task_id);
-            ToTaskFull toTaskFull = mapperManager.map(task, ToTaskFull.class);
+            ToTaskFull toTaskFull = toTaskFull(task);
             theModel.addAttribute("task_to", toTaskFull);
             taskService.setViewedTask(task, authUser.getId(), true);
         }
@@ -362,9 +362,15 @@ public class TaskController {
 
         List<ToTask> taskList;
         if (user_id == -1) {
-            taskList = taskService.getMyTasks(authUser.getId(), filterUserID, search, dateFromValue, dateToValue, page).stream().map(post -> mapperManager.map(post, ToTask.class)).collect(Collectors.toList());
+            taskList = taskService.getMyTasks(authUser.getId(), filterUserID, search, dateFromValue, dateToValue, page)
+                    .stream()
+                    .map(this::toTask)
+                    .collect(Collectors.toList());
         } else {
-            taskList = taskService.getTasks(user_id, filterUserID, search, dateFromValue, dateToValue, page).stream().map(post -> mapperManager.map(post, ToTask.class)).collect(Collectors.toList());
+            taskList = taskService.getTasks(user_id, filterUserID, search, dateFromValue, dateToValue, page)
+                    .stream()
+                    .map(this::toTask)
+                    .collect(Collectors.toList());
         }
         List<Integer> pageList = Utils.getPagin(page);
         theModel.addAttribute("taskList", taskList);
@@ -419,6 +425,76 @@ public class TaskController {
         } catch (DateTimeParseException ex) {
             return null;
         }
+    }
+
+    private ToTask toTask(Task task) {
+        if (task == null) {
+            return null;
+        }
+        ToTask toTask = new ToTask();
+        toTask.setId(task.getId());
+        toTask.setTitle(task.getTitle());
+        toTask.setDateCreate(task.getDateCreate());
+        toTask.setDateBegin(task.getDateBegin());
+        toTask.setDateEnd(task.getDateEnd());
+        toTask.setDateComplete(task.getDateComplete());
+        toTask.setIsDone(task.getIsDone());
+        toTask.setIsViewed(task.getIsViewed());
+        if (task.getCreatedBy() != null) {
+            toTask.setCreatedBy(new ToUser(task.getCreatedBy()));
+        }
+        if (task.getResponsible() != null) {
+            toTask.setResponsible(new ToUser(task.getResponsible()));
+        }
+        return toTask;
+    }
+
+    private ToTaskFull toTaskFull(Task task) {
+        if (task == null) {
+            return null;
+        }
+        ToTaskFull toTaskFull = new ToTaskFull();
+        toTaskFull.setId(task.getId());
+        toTaskFull.setTitle(task.getTitle());
+        toTaskFull.setMemo(task.getMemo());
+        toTaskFull.setDateCreate(task.getDateCreate());
+        toTaskFull.setDateBegin(task.getDateBegin());
+        toTaskFull.setDateEnd(task.getDateEnd());
+        toTaskFull.setDateComplete(task.getDateComplete());
+        toTaskFull.setIsDone(task.getIsDone());
+        toTaskFull.setIsViewed(task.getIsViewed());
+        if (task.getMemoList() != null) {
+            toTaskFull.setMemoList(task.getMemoList());
+        } else {
+            toTaskFull.setMemoList(java.util.Collections.emptyList());
+        }
+        if (task.getCreatedBy() != null) {
+            toTaskFull.setCreatedBy(new ToUser(task.getCreatedBy()));
+        }
+        if (task.getResponsible() != null) {
+            toTaskFull.setResponsible(new ToUser(task.getResponsible()));
+        }
+        return toTaskFull;
+    }
+
+    private Task toTaskEntity(ToTaskFull source) {
+        Task task = new Task();
+        task.setId(source.getId());
+        task.setTitle(source.getTitle());
+        task.setMemo(source.getMemo());
+        task.setDateCreate(source.getDateCreate());
+        task.setDateBegin(source.getDateBegin());
+        task.setDateEnd(source.getDateEnd());
+        task.setDateComplete(source.getDateComplete());
+        task.setIsDone(Boolean.TRUE.equals(source.getIsDone()));
+        task.setIsViewed(source.getIsViewed());
+        if (source.getCreatedBy() != null) {
+            task.setCreatedBy(source.getCreatedBy().getUser());
+        }
+        if (source.getResponsible() != null) {
+            task.setResponsible(source.getResponsible().getUser());
+        }
+        return task;
     }
 
     private User getAuthUser(HttpServletRequest request) {

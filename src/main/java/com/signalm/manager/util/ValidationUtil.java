@@ -3,8 +3,8 @@ package com.signalm.manager.util;
 import com.signalm.manager.util.exception.ErrorType;
 import org.slf4j.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.*;
 import java.util.Set;
 
 public class ValidationUtil {

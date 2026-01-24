@@ -4,7 +4,7 @@
     <title>Просмотр задачи</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <th:block th:replace="fragments/libs :: libs"></th:block>
+    <th:block th:replace="~{fragments/libs :: libs}"></th:block>
 
     <script type="text/javascript">
         function displayModal(button) {
@@ -62,10 +62,10 @@
 
 <div class="py-1">
     <div class="container-fluid">
-        <th:block th:replace="fragments/head :: head(${auth_user})"></th:block>
+        <th:block th:replace="~{fragments/head :: head(${auth_user})}"></th:block>
 
         <div class="row">
-            <th:block th:replace="fragments/menu :: menu(${userList}, ${user_id})"></th:block>
+            <th:block th:replace="~{fragments/menu :: menu(${userList}, ${user_id})}"></th:block>
             <div class="col">
                 <!-- Task Header -->
                 <div class="card shadow-sm mb-4">
@@ -100,11 +100,13 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <h6 class="text-muted mb-2"><i class="fas fa-user-plus mr-1"></i>Заказчик</h6>
-                                    <p class="mb-0 font-weight-medium" th:text="${task_to.createdBy.fullName}">Имя заказчика</p>
+                                    <p class="mb-0 font-weight-medium"
+                                       th:text="${task_to.createdBy != null ? task_to.createdBy.fullName : ''}">Имя заказчика</p>
                                 </div>
                                 <div class="mb-3">
                                     <h6 class="text-muted mb-2"><i class="fas fa-user-cog mr-1"></i>Исполнитель</h6>
-                                    <p class="mb-0 font-weight-medium" th:text="${task_to.responsible.fullName}">Имя исполнителя</p>
+                                    <p class="mb-0 font-weight-medium"
+                                       th:text="${task_to.responsible != null ? task_to.responsible.fullName : ''}">Имя исполнителя</p>
                                 </div>
                             </div>
                         </div>
@@ -121,7 +123,8 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-0">
                                 <i class="fas fa-comments mr-2 text-primary"></i>Примечания
-                                <span class="badge badge-primary ml-2" th:text="${#lists.size(task_to.memoList)}">0</span>
+                                <span class="badge badge-primary ml-2"
+                                      th:text="${task_to.memoList != null ? #lists.size(task_to.memoList) : 0}">0</span>
                             </h6>
                         </div>
                     </div>
@@ -190,7 +193,7 @@
                             </div>
                         </div>
 
-                        <div th:if="${#lists.isEmpty(task_to.memoList)}" class="text-center py-4">
+                        <div th:if="${task_to.memoList == null or #lists.isEmpty(task_to.memoList)}" class="text-center py-4">
                             <i class="fas fa-comments fa-2x text-muted mb-2"></i>
                             <p class="text-muted mb-0">Примечаний пока нет</p>
                         </div>
@@ -203,18 +206,18 @@
                         <i class="fas fa-arrow-left mr-1"></i>Назад к списку
                     </a>
                     <div>
-                        <a th:if="${task_to.responsible.id == auth_user.id}"
+                        <a th:if="${task_to.responsible != null and auth_user != null and task_to.responsible.id == auth_user.id}"
                            th:href="@{/task/finishtask(user_id=${user_id},task_id=${task_to.id},page=${page})}"
                            th:class="${task_to.isDone} ? 'btn btn-danger mr-2' : 'btn btn-success mr-2'">
                             <i class="fas fa-check mr-1"></i>
                             <span th:text="${task_to.isDone} ? 'Отменить' : 'Выполнить'">Выполнить</span>
                         </a>
-                        <a th:if="${task_to.createdBy.id == auth_user.id}"
+                        <a th:if="${task_to.createdBy != null and auth_user != null and task_to.createdBy.id == auth_user.id}"
                            th:href="@{/task/edittask(user_id=${user_id},page=${page},task_id=${task_to.id})}"
                            class="btn btn-primary mr-2">
                             <i class="fas fa-edit mr-1"></i>Редактировать
                         </a>
-                        <button th:if="${task_to.createdBy.id == auth_user.id}"
+                        <button th:if="${task_to.createdBy != null and auth_user != null and task_to.createdBy.id == auth_user.id}"
                                 class="btn btn-danger"
                                 data-toggle="modal" data-target="#exampleModal"
                                 th:attr="data-ref=@{/task/deletetask},

@@ -1,6 +1,6 @@
 package com.signalm.manager.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "roles")

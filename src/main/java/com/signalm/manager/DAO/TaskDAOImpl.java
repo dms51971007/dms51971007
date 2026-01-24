@@ -1,10 +1,12 @@
 package com.signalm.manager.DAO;
 
 import com.signalm.manager.model.Task;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -13,24 +15,22 @@ import java.util.List;
 @Repository
 public class TaskDAOImpl implements TaskDAO {
 
-    private final SessionFactory sessionFactory;
-    private static final int PAGE_SIZE = 30;
+    private static final Logger logger = LoggerFactory.getLogger(TaskDAOImpl.class);
 
-    @Autowired
-    public TaskDAOImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
+    private static final int PAGE_SIZE = 30;
 
     @Override
     public Task getTask(int id) {
-        Session session = sessionFactory.getCurrentSession();
-
-        return session.find(Task.class, id);
+        logger.info("TaskDAO.getTask id={}", id);
+        return entityManager.find(Task.class, id);
     }
 
     @Override
     public List<Task> getMyTasks(int id, Integer filterID, String search, LocalDateTime dateFrom, LocalDateTime dateTo, int page) {
-        Session session = sessionFactory.getCurrentSession();
+        logger.info("TaskDAO.getMyTasks userId={} filterId={} search={} dateFrom={} dateTo={} page={}",
+                id, filterID, search, dateFrom, dateTo, page);
         boolean hasSearch = search != null && !search.trim().isEmpty();
         String searchValue = hasSearch ? "%" + search.toLowerCase() + "%" : null;
 
@@ -49,7 +49,7 @@ public class TaskDAOImpl implements TaskDAO {
         }
         hql.append(" order by t.isDone ASC, t.dateEnd DESC ");
 
-        Query<Task> query = session.createQuery(hql.toString(), Task.class);
+        TypedQuery<Task> query = entityManager.createQuery(hql.toString(), Task.class);
         if (filterID != null) {
             query.setParameter("filter_id", filterID);
         }
@@ -71,8 +71,8 @@ public class TaskDAOImpl implements TaskDAO {
 
     @Override
     public List<Task> getTasks(int id, Integer filterID, String search, LocalDateTime dateFrom, LocalDateTime dateTo, int page) {
-        Session session = sessionFactory.getCurrentSession();
-
+        logger.info("TaskDAO.getTasks userId={} filterId={} search={} dateFrom={} dateTo={} page={}",
+                id, filterID, search, dateFrom, dateTo, page);
         boolean hasSearch = search != null && !search.trim().isEmpty();
         String searchValue = hasSearch ? "%" + search.toLowerCase() + "%" : null;
 
@@ -91,7 +91,7 @@ public class TaskDAOImpl implements TaskDAO {
         }
         hql.append(" order by t.isDone ASC, t.dateEnd DESC ");
 
-        Query<Task> query = session.createQuery(hql.toString(), Task.class);
+        TypedQuery<Task> query = entityManager.createQuery(hql.toString(), Task.class);
         if (filterID != null) {
             query.setParameter("filter_id", filterID);
         }
@@ -112,15 +112,15 @@ public class TaskDAOImpl implements TaskDAO {
 
     @Override
     public int addTask(Task task) {
-        Session session = sessionFactory.getCurrentSession();
-        session.saveOrUpdate(task);
+        logger.info("TaskDAO.addTask id={} title={}", task.getId(), task.getTitle());
+        entityManager.merge(task);
         return task.getId();
     }
 
     @Override
     public void deleteTask(int id) {
-        Session session = sessionFactory.getCurrentSession();
-        Query query = session.createQuery("delete from Task where id=:id");
+        logger.info("TaskDAO.deleteTask id={}", id);
+        Query query = entityManager.createQuery("delete from Task where id=:id");
         query.setParameter("id", id);
         query.executeUpdate();
 

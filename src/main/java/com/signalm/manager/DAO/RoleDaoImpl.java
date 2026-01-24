@@ -1,32 +1,32 @@
 package com.signalm.manager.DAO;
 
 import com.signalm.manager.model.Role;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class RoleDaoImpl implements RoleDAO {
 
-	private final SessionFactory sessionFactory;
+	private static final Logger logger = LoggerFactory.getLogger(RoleDaoImpl.class);
 
-	public RoleDaoImpl(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	@Override
 	public Role findRoleByName(String theRoleName) {
+		logger.info("RoleDAO.findRoleByName name={}", theRoleName);
 
-		Session currentSession = sessionFactory.getCurrentSession();
-
-		Query<Role> theQuery = currentSession.createQuery("Select r from Role r where r.name=:roleName", Role.class);
+		TypedQuery<Role> theQuery = entityManager.createQuery(
+				"Select r from Role r where r.name=:roleName", Role.class);
 		theQuery.setParameter("roleName", theRoleName);
 		
 		Role theRole = null;
 		
 		theRole = theQuery.getSingleResult();
-
 		return theRole;
 	}
 }

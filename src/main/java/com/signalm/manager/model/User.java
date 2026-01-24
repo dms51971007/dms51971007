@@ -1,7 +1,7 @@
 package com.signalm.manager.model;
 
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Collection;
 
 @Entity

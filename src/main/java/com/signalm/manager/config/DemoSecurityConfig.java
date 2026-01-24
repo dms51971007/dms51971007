@@ -1,21 +1,18 @@
 package com.signalm.manager.config;
 
-import com.allanditzel.springframework.security.web.csrf.CsrfTokenResponseHeaderBindingFilter;
 import com.signalm.manager.serv.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class DemoSecurityConfig extends WebSecurityConfigurerAdapter {
+public class DemoSecurityConfig {
 
     private final UserService userService;
 
@@ -26,31 +23,25 @@ public class DemoSecurityConfig extends WebSecurityConfigurerAdapter {
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(authenticationProvider());
-    }
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authenticationProvider(authenticationProvider());
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-              .antMatchers("/").hasRole("USER")
-              .antMatchers("/task/**").hasRole("USER")
-              .antMatchers("/user/**").hasRole("ADMIN")
-              .and()
-              .formLogin().loginPage("/showMyLoginPage")
-              .loginProcessingUrl("/authenticateTheUser")
-              .successHandler(customAuthenticationSuccessHandler)
-              .permitAll()
-              .and()
-              .logout().permitAll()
-              .and()
-              .exceptionHandling().accessDeniedPage("/access-denied")
-              .and()
-              .csrf()
-              .ignoringAntMatchers("/task/savememo"); // Disable CSRF for file upload
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/resource/**", "/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
+                .requestMatchers("/").hasRole("USER")
+                .requestMatchers("/task/**").hasRole("USER")
+                .requestMatchers("/user/**").hasRole("ADMIN"))
+            .formLogin(form -> form
+                .loginPage("/showMyLoginPage")
+                .loginProcessingUrl("/authenticateTheUser")
+                .successHandler(customAuthenticationSuccessHandler)
+                .permitAll())
+            .logout(logout -> logout.permitAll())
+            .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/task/savememo"));
 
-        http.addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class);
+        return http.build();
     }
     @Bean
     public PasswordEncoder passwordEncoder() {

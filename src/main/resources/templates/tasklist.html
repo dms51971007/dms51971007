@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Список задач</title>
-    <th:block th:replace="fragments/libs :: libs"></th:block>
+    <th:block th:replace="~{fragments/libs :: libs}"></th:block>
 </head>
 
 <body>
 <div class="py-1">
     <div class="container-fluid">
-        <th:block th:replace="fragments/head :: head(${auth_user})"></th:block>
+        <th:block th:replace="~{fragments/head :: head(${auth_user})}"></th:block>
 
         <!-- Мобильное меню -->
         <div class="d-block d-md-none mb-3">
@@ -49,7 +49,7 @@
 
         <div class="row flex-column flex-md-row">
             <div class="col-12 col-md-auto order-2 order-md-1">
-                <th:block th:replace="fragments/menu :: menu(${userList}, ${user_id})"></th:block>
+                <th:block th:replace="~{fragments/menu :: menu(${userList}, ${user_id})}"></th:block>
             </div>
             <div class="col-12 col-md order-1 order-md-2">
                 <div class="row mb-4">
