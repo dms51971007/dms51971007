@@ -6,7 +6,7 @@ DROP USER IF EXISTS 'signalm'@'%';
 DROP USER IF EXISTS 'signalm'@'localhost';
 
 CREATE USER 'signalm'@'%' 
-IDENTIFIED WITH mysql_native_password BY 'SignalPassword123!';
+IDENTIFIED WITH mysql_native_password BY '128201';
 
 CREATE USER 'signalm'@'localhost' 
 IDENTIFIED WITH mysql_native_password BY 'SignalPassword123!';
