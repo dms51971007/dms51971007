@@ -12,13 +12,13 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class DemoSecurityConfig {
+public class SecurityConfig {
 
     private final UserService userService;
 
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
-    public DemoSecurityConfig(UserService userService, CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
+    public SecurityConfig(UserService userService, CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
         this.userService = userService;
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
@@ -28,7 +28,15 @@ public class DemoSecurityConfig {
         http.authenticationProvider(authenticationProvider());
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/resource/**", "/css/**", "/js/**", "/img/**", "/webjars/**").permitAll()
+                .requestMatchers(
+                        "/resource/**",
+                        "/css/**",
+                        "/js/**",
+                        "/img/**",
+                        "/webjars/**",
+                        "/showMyLoginPage",
+                        "/access-denied")
+                .permitAll()
                 .requestMatchers("/").hasRole("USER")
                 .requestMatchers("/task/**").hasRole("USER")
                 .requestMatchers("/user/**").hasRole("ADMIN"))
@@ -37,7 +45,12 @@ public class DemoSecurityConfig {
                 .loginProcessingUrl("/authenticateTheUser")
                 .successHandler(customAuthenticationSuccessHandler)
                 .permitAll())
-            .logout(logout -> logout.permitAll())
+            .logout(logout -> logout
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll())
             .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
             .csrf(csrf -> csrf.ignoringRequestMatchers("/task/savememo"));
 
