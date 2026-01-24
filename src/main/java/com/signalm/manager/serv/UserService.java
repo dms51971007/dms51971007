@@ -4,7 +4,6 @@ import com.signalm.manager.model.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
-import java.util.Map;
 
 public interface UserService extends UserDetailsService {
     List<User> getUsers();

@@ -1,9 +1,5 @@
 package com.signalm.manager.util;
 
-import com.signalm.manager.model.User;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.util.ArrayList;
 import java.util.List;
 
