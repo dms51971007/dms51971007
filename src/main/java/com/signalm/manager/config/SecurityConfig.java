@@ -1,32 +1,26 @@
 package com.signalm.manager.config;
 
-import com.signalm.manager.serv.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserService userService;
-
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
-    public SecurityConfig(UserService userService, CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
-        this.userService = userService;
+    public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
         this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.authenticationProvider(authenticationProvider());
-
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/resource/**",
@@ -35,6 +29,7 @@ public class SecurityConfig {
                         "/img/**",
                         "/webjars/**",
                         "/showMyLoginPage",
+                        "/authenticateTheUser",
                         "/access-denied")
                 .permitAll()
                 .requestMatchers("/").hasRole("USER")
@@ -46,13 +41,16 @@ public class SecurityConfig {
                 .successHandler(customAuthenticationSuccessHandler)
                 .permitAll())
             .logout(logout -> logout
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/showMyLoginPage?logout")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
-                .deleteCookies("JSESSIONID")
+                .deleteCookies("JSESSIONID", "XSRF-TOKEN")
                 .permitAll())
-            .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/task/savememo"));
+            .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, accessDeniedException) ->
+                response.sendRedirect(request.getContextPath() + "/access-denied")))
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringRequestMatchers("/task/savememo", "/logout", "/authenticateTheUser"));
 
         return http.build();
     }
@@ -60,14 +58,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
-
-    //authenticationProvider bean definition
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-        auth.setUserDetailsService(userService);
-        auth.setPasswordEncoder(passwordEncoder());
-        return auth;
-    }
-
 }
