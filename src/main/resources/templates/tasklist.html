@@ -3,6 +3,149 @@
 <head>
     <title>Список задач</title>
     <th:block th:replace="~{fragments/libs :: libs}"></th:block>
+    <style>
+        @media (max-width: 576px), (orientation: portrait) {
+            .task-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+
+            .task-toolbar .task-actions,
+            .task-toolbar .task-filters {
+                width: 100%;
+            }
+
+            .task-toolbar .task-filters {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            .task-toolbar .task-filters .form-inline {
+                flex-wrap: wrap;
+                width: 100%;
+                margin-right: 0 !important;
+            }
+
+            .task-toolbar .task-filters .form-control,
+            .task-toolbar .task-filters .btn {
+                width: 100% !important;
+                margin-right: 0 !important;
+                min-height: 40px;
+            }
+
+            .task-toolbar .task-filters .form-control {
+                margin-bottom: 0.5rem;
+            }
+
+            .task-toolbar .task-filters .dropdown,
+            .task-toolbar .task-filters .btn {
+                margin-bottom: 0.5rem;
+            }
+
+            .task-toolbar .task-filters .dropdown,
+            .task-toolbar .task-filters .dropdown .btn,
+            .task-toolbar .task-filters a.btn {
+                width: 100% !important;
+                display: block;
+                margin-right: 0 !important;
+            }
+
+            .task-toolbar .task-filters > * {
+                width: 100% !important;
+            }
+
+            .task-toolbar .task-filters .btn,
+            .task-toolbar .task-filters a.btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .task-toolbar .task-actions .btn {
+                width: 100%;
+            }
+
+            .mobile-users .user-col {
+                flex: 0 0 33.3333%;
+                max-width: 33.3333%;
+            }
+
+            .mobile-users .btn {
+                height: 48px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-users .user-label {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-users .own-label {
+                display: none !important;
+            }
+
+            #taskTable th:nth-child(2),
+            #taskTable td:nth-child(2),
+            #taskTable th.task-customer-col,
+            #taskTable td.task-customer-col,
+            #taskTable th.task-executor-col,
+            #taskTable td.task-executor-col,
+            #taskTable th.task-status-col,
+            #taskTable td.task-status-col {
+                display: none !important;
+            }
+
+            .task-status-col {
+                width: 60px;
+                white-space: nowrap;
+            }
+
+            .task-due-col {
+                width: 84px;
+                white-space: nowrap;
+            }
+
+            #taskTable th.task-status-col,
+            #taskTable td.task-status-col,
+            #taskTable th.task-due-col,
+            #taskTable td.task-due-col {
+                padding-left: 4px;
+                padding-right: 4px;
+            }
+
+            #taskTable th.task-status-col,
+            #taskTable td.task-status-col {
+                text-align: right;
+            }
+
+            .status-dot {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+            }
+
+            .status-dot.done {
+                background: #1eac4f;
+            }
+
+            .status-dot.pending {
+                background: #ffc107;
+            }
+
+            .status-text {
+                display: none;
+            }
+
+            .table-responsive {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -17,20 +160,21 @@
                     <h6 class="mb-0"><i class="fas fa-users mr-2"></i>Пользователи</h6>
                 </div>
                 <div class="card-body p-2">
-                    <div class="row">
-                        <div class="col-6 col-sm-4 mb-2">
+                    <div class="row mobile-users">
+                        <div class="col-6 col-sm-4 mb-2 user-col">
                             <a th:href="@{/task/tasklist(user_id=-1,page=1)}"
                                class="btn btn-block text-left"
                                th:classappend="${user_id == -1} ? 'btn-danger' : 'btn-outline-secondary'">
-                                <i class="fas fa-home mr-1"></i>Свои задачи
+                                <i class="fas fa-home mr-1 own-icon"></i>
+                                <span class="d-block user-label own-label">Свои задачи</span>
                             </a>
                         </div>
                         <th:block th:each="user : ${userList}">
-                            <div class="col-6 col-sm-4 mb-2">
+                            <div class="col-6 col-sm-4 mb-2 user-col">
                                 <a th:href="@{/task/tasklist(user_id=${user.id},page=1)}"
                                    class="btn btn-block text-left position-relative"
                                    th:classappend="${user.id == user_id} ? 'btn-danger' : 'btn-outline-secondary'">
-                                    <span th:text="${user.fullName}" class="d-block">Пользователь</span>
+                                    <span th:text="${user.fullName}" class="d-block user-label">Пользователь</span>
                                     <span class="badge badge-pill position-absolute"
                                           th:classappend="${user.id == user_id} ? 'badge-light' : 'badge-secondary'"
                                           th:style="${user.id == user_id} ? 'top: -5px; right: -5px; background: #ffffff; color: #fc042b;' : 'top: -5px; right: -5px; background: #e5e7eb; color: #1f2230;'"
@@ -54,14 +198,14 @@
             <div class="col-12 col-md order-1 order-md-2">
                 <div class="row mb-4">
                     <div class="col">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
+                        <div class="d-flex justify-content-between align-items-center task-toolbar">
+                            <div class="task-actions">
                                 <button th:if="${user_id != -1}" class="btn btn-success"
                                         th:onclick="'location.href=\'' + @{/task/addtask(user_id=${user_id},page=${page})} + '\''">
                                     <i class="fas fa-plus mr-1"></i>Создать задачу
                                 </button>
                             </div>
-                            <div class="d-flex align-items-center">
+                            <div class="d-flex align-items-center task-filters">
                                 <form class="form-inline mr-2" th:action="@{/task/tasklist}" method="get">
                                     <input type="hidden" name="user_id" th:value="${user_id}">
                                     <input type="hidden" name="page" value="1">
@@ -92,7 +236,7 @@
                                         </th:block>
                                     </div>
                                 </div>
-                                <a class="btn btn-outline-secondary mr-2"
+                                <a class="btn btn-outline-secondary mr-0"
                                    th:href="@{/task/tasklist(user_id=${user_id},page=1,filter_user_id=-1,search='',date_from='',date_to='')}"
                                    title="Очистить фильтры">
                                     <i class="fas fa-times"></i>
@@ -117,15 +261,19 @@
                                         <i class="fas fa-heading mr-1"></i>
                                         <span class="d-none d-md-inline">Название</span>
                                     </th>
-                                    <th scope="col" class="border-0 d-none d-md-table-cell">
+                                    <th scope="col" class="border-0 task-due-col">
                                         <i class="fas fa-clock mr-1"></i>
-                                        <span class="d-none d-lg-inline">Срок</span>
+                                        <span>Срок</span>
                                     </th>
-                                    <th scope="col" class="border-0 d-none d-md-table-cell">
+                                    <th scope="col" class="border-0 d-none d-md-table-cell task-customer-col">
                                         <i class="fas fa-user mr-1"></i>
-                                        <span class="d-none d-lg-inline" th:text="${user_id == -1} ? 'Исполнитель' : 'Заказчик'">Пользователь</span>
+                                        <span class="d-none d-lg-inline">Заказчик</span>
                                     </th>
-                                    <th scope="col" class="border-0">
+                                    <th scope="col" class="border-0 d-none d-md-table-cell task-executor-col">
+                                        <i class="fas fa-user-check mr-1"></i>
+                                        <span class="d-none d-lg-inline">Исполнитель</span>
+                                    </th>
+                                    <th scope="col" class="border-0 task-status-col">
                                         <i class="fas fa-info-circle mr-1"></i>
                                         <span class="d-none d-md-inline">Статус</span>
                                     </th>
@@ -149,21 +297,26 @@
                                             <span th:if="${!task.isViewed}" class="badge badge-warning ml-2">Новое</span>
                                         </div>
                                     </td>
-                                    <td class="d-none d-md-table-cell">
-                                        <span th:text="${task.dateEnd != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task.dateEnd, 'dd.MM.yyyy HH:mm') : ''}"
+                                    <td class="task-due-col">
+                                        <span th:text="${task.dateEnd != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task.dateEnd, 'dd.MM.yyyy') : ''}"
                                               th:class="${task.isDone ? 'text-success' : 'text-muted'}">
                                         </span>
                                     </td>
-                                    <td class="d-none d-md-table-cell">
-                                        <span th:text="${user_id == -1} ? ${task.responsible.fullName} : ${task.createdBy.fullName}"></span>
+                                    <td class="d-none d-md-table-cell task-customer-col">
+                                        <span th:text="${task.createdBy != null ? task.createdBy.fullName : ''}"></span>
                                     </td>
-                                    <td>
-                                        <span th:if="${task.isDone}" class="badge badge-success">
+                                    <td class="d-none d-md-table-cell task-executor-col">
+                                        <span th:text="${task.responsible != null ? task.responsible.fullName : ''}"></span>
+                                    </td>
+                                    <td class="task-status-col">
+                                        <span th:if="${task.isDone}" class="badge badge-success status-text">
                                             <i class="fas fa-check mr-1"></i>Выполнено
                                         </span>
-                                        <span th:if="${!task.isDone}" class="badge badge-warning">
+                                        <span th:if="${!task.isDone}" class="badge badge-warning status-text">
                                             <i class="fas fa-clock mr-1"></i>В работе
                                         </span>
+                                        <span th:if="${task.isDone}" class="status-dot done" aria-label="Выполнено"></span>
+                                        <span th:if="${!task.isDone}" class="status-dot pending" aria-label="В работе"></span>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(taskList)}">
