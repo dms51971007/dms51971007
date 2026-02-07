@@ -243,7 +243,7 @@ public class TaskController {
         User authUser = getAuthUser(request);
         Task task = toTaskEntity(toTask);
         LocalDateTime dateBeginValue = parseDateStart(dateBegin);
-        LocalDateTime dateEndValue = parseDateEnd(dateEnd);
+        LocalDateTime dateEndValue = parseDateStart(dateEnd);
         User responsibleUser = userService.getUser(responsible_id);
         if (responsibleUser == null) {
             responsibleUser = authUser;

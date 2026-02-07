@@ -253,6 +253,10 @@
                                 <thead class="thead-light">
                                 <tr>
                                     <th scope="col" class="border-0 d-none d-sm-table-cell">#</th>
+                                    <th scope="col" class="border-0 task-status-col">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        <span class="d-none d-md-inline">Статус</span>
+                                    </th>
                                     <th scope="col" class="border-0 d-none d-md-table-cell">
                                         <i class="fas fa-calendar-alt mr-1"></i>
                                         <span class="d-none d-lg-inline">Дата создания</span>
@@ -273,10 +277,6 @@
                                         <i class="fas fa-user-check mr-1"></i>
                                         <span class="d-none d-lg-inline">Исполнитель</span>
                                     </th>
-                                    <th scope="col" class="border-0 task-status-col">
-                                        <i class="fas fa-info-circle mr-1"></i>
-                                        <span class="d-none d-md-inline">Статус</span>
-                                    </th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -287,6 +287,16 @@
                                     style="cursor: pointer; transition: background-color 0.2s;">
                                     <td class="d-none d-sm-table-cell">
                                         <span th:text="${task.id}" class="badge badge-secondary">#[[${task.id}]]</span>
+                                    </td>
+                                    <td class="task-status-col">
+                                        <span th:if="${task.isDone}" class="badge badge-success status-text">
+                                            <i class="fas fa-check mr-1"></i>Выполнено
+                                        </span>
+                                        <span th:if="${!task.isDone}" class="badge badge-warning status-text">
+                                            <i class="fas fa-clock mr-1"></i>В работе
+                                        </span>
+                                        <span th:if="${task.isDone}" class="status-dot done" aria-label="Выполнено"></span>
+                                        <span th:if="${!task.isDone}" class="status-dot pending" aria-label="В работе"></span>
                                     </td>
                                     <td class="d-none d-md-table-cell">
                                         <span th:text="${task.dateBegin != null ? T(com.signalm.manager.util.Dates).formatLocalDateTime(task.dateBegin, 'dd.MM.yyyy HH:mm') : ''}" class="text-muted"></span>
@@ -307,16 +317,6 @@
                                     </td>
                                     <td class="d-none d-md-table-cell task-executor-col">
                                         <span th:text="${task.responsible != null ? task.responsible.fullName : ''}"></span>
-                                    </td>
-                                    <td class="task-status-col">
-                                        <span th:if="${task.isDone}" class="badge badge-success status-text">
-                                            <i class="fas fa-check mr-1"></i>Выполнено
-                                        </span>
-                                        <span th:if="${!task.isDone}" class="badge badge-warning status-text">
-                                            <i class="fas fa-clock mr-1"></i>В работе
-                                        </span>
-                                        <span th:if="${task.isDone}" class="status-dot done" aria-label="Выполнено"></span>
-                                        <span th:if="${!task.isDone}" class="status-dot pending" aria-label="В работе"></span>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(taskList)}">

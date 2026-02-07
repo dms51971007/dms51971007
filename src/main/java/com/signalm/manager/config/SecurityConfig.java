@@ -50,7 +50,7 @@ public class SecurityConfig {
                 response.sendRedirect(request.getContextPath() + "/access-denied")))
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/task/savememo", "/logout", "/authenticateTheUser"));
+                .ignoringRequestMatchers("/task/savememo", "/logout", "/authenticateTheUser", "/task/savetask"));
 
         return http.build();
     }
